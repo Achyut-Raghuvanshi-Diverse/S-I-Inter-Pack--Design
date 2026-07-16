@@ -1,0 +1,97 @@
+<section class="page-heading">
+  <div>
+    <div class="eyebrow">Commercial operations</div>
+    <h2>Sales & dispatch ledger</h2>
+    <p>Every item dispatched from an SI Inter Pack facility, with invoice and realization details.</p>
+  </div>
+  <button class="btn btn-primary" type="button" (click)="exportCsv()"><svg lucideDownload size="16"></svg> Export
+    filtered CSV</button>
+</section>
+
+<div class="ledger-summary">
+  <article><span class="summary-icon indigo"><svg lucidePackageCheck size="19"></svg></span>
+    <div><small>Units sold</small><strong>{{ totalUnits().toLocaleString('en-IN') }}</strong><em>Filtered dispatch
+        quantity</em></div>
+  </article>
+  <article><span class="summary-icon violet"><svg lucideIndianRupee size="19"></svg></span>
+    <div><small>Total value</small><strong>₹{{ (totalValue() / 100000).toFixed(2) }} L</strong><em>Before tax · filtered
+        rows</em></div>
+  </article>
+  <article><span class="summary-icon blue"><svg lucideTruck size="19"></svg></span>
+    <div><small>Average realization</small><strong>₹{{ averageRate().toFixed(0) }}</strong><em>Per dispatched unit</em>
+    </div>
+  </article>
+  <article><span class="summary-icon gray"><svg lucideCalendarDays size="19"></svg></span>
+    <div><small>Dispatch records</small><strong>{{ filtered().length }}</strong><em>Current filter result</em></div>
+  </article>
+</div>
+
+<section class="panel">
+  <div class="ledger-toolbar">
+    <label class="input-icon"><svg lucideSearch size="16"></svg><input class="control" type="search"
+        placeholder="Search invoice, article or customer" [value]="search()" (input)="updateSearch($event)" /></label>
+    <select class="compact-select" [value]="plantId() ?? ''" (change)="setPlant($event)">
+      <option value="">All plants</option>@for (plant of data.plants(); track plant.id) { <option [value]="plant.id">{{
+        plant.code }} · {{ plant.name }}</option> }
+    </select>
+    <select class="compact-select" [value]="status()" (change)="setStatus($event)">
+      <option>All statuses</option>
+      <option>Delivered</option>
+      <option>In transit</option>
+      <option>Ready</option>
+    </select>
+    <label class="date-control"><svg lucideCalendarDays size="14"></svg><input type="date" value="2026-07-01"
+        aria-label="From date" /><span>to</span><input type="date" value="2026-07-16" aria-label="To date" /></label>
+    <span class="result-count">{{ filtered().length }} records</span>
+  </div>
+  @if (paged().length) {
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th><button class="table-sort" (click)="sort('date')">Dispatch date <svg lucideArrowUpDown
+                size="12"></svg></button></th>
+          <th>Plant</th>
+          <th>Article / model</th>
+          <th>Customer / OEM</th>
+          <th class="numeric">Quantity</th>
+          <th class="numeric">Rate</th>
+          <th class="numeric">Total value</th>
+          <th>Status</th>
+          <th>Invoice reference</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (entry of paged(); track entry.id) { <tr>
+          <td class="tabular">{{ entry.date }}</td>
+          <td><span class="plant-code">{{ plantCode(entry.plantId) }}</span>
+          </td>
+          <td>
+            <div class="cell-stack"><strong>{{ data.articleName(entry.articleId) }}</strong><small>{{
+                data.articles()[entry.articleId - 1]?.code }}</small></div>
+          </td>
+          <td class="primary-cell">{{ entry.customer }}</td>
+          <td class="numeric">{{ entry.quantity.toLocaleString('en-IN') }}</td>
+          <td class="numeric">₹{{ entry.rate.toLocaleString('en-IN') }}</td>
+          <td class="numeric primary-cell">₹{{ value(entry).toLocaleString('en-IN') }}</td>
+          <td><span [class]="'badge ' + statusClass(entry.status)">{{ entry.status }}</span></td>
+          <td [class.muted]="entry.invoice === 'Pending'">{{ entry.invoice }}</td>
+        </tr> }
+      </tbody>
+    </table>
+  </div>
+  <div class="table-footer"><span>Showing {{ (page() - 1) * pageSize + 1 }}–{{ maxShown() }} of {{ filtered().length }}
+      dispatch records</span>
+    <div class="pagination"><button [disabled]="page() === 1" (click)="previousPage()"><svg lucideChevronLeft
+          size="13"></svg></button>@for (number of pageNumbers(); track number) { <button
+        [class.active]="page() === number" (click)="page.set(number)">{{ number }}</button> }<button
+        [disabled]="page() === pages()" (click)="nextPage()"><svg lucideChevronRight
+          size="13"></svg></button></div>
+  </div>
+  } @else { <div class="empty-state">
+    <div><svg lucideTruck size="29"></svg>
+      <h3>No dispatches match these filters</h3>
+      <p>Clear a filter or record a scan at the Dispatched stage.</p>
+    </div>
+  </div> }
+</section>

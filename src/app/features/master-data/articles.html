@@ -1,0 +1,42 @@
+@if (view() === 'list') {
+  <section class="page-heading">
+    <div><div class="eyebrow">Master data</div><h2>Articles & vehicle models</h2><p>Maintain production references, standard costs, prices and plant assignments.</p></div>
+    <button class="btn btn-primary" type="button" (click)="create()"><svg lucidePlus size="16"></svg> Add article</button>
+  </section>
+  <section class="panel">
+    <div class="master-toolbar"><label class="input-icon"><svg lucideSearch size="16"></svg><input class="control" type="search" placeholder="Search article code, model or material" [value]="search()" (input)="updateSearch($event)" /></label><select class="compact-select"><option>All segments</option><option>Passenger</option><option>Commercial</option><option>Utility</option></select><select class="compact-select"><option>Active and inactive</option><option>Active only</option></select><span class="spacer"></span><button class="btn btn-secondary" type="button"><svg lucideDownload size="15"></svg> Export</button></div>
+    @if (paged().length) {
+      <div class="data-table-wrap"><table class="data-table"><thead><tr><th><button class="sort-button" (click)="sort('code')">Article code <svg lucideArrowUpDown size="12"></svg></button></th><th><button class="sort-button" (click)="sort('modelName')">Model / description <svg lucideArrowUpDown size="12"></svg></button></th><th>Segment</th><th>Material</th><th>Producing plants</th><th class="numeric">Cost / price</th><th class="numeric">Margin</th><th>Status</th><th></th></tr></thead><tbody>
+        @for (article of paged(); track article.id) { <tr>
+          <td><div class="code-cell"><span class="code-token"><svg lucideBarcode size="13"></svg> {{ article.code.split('-').slice(1,3).join('-') }}</span></div></td>
+          <td><div class="cell-stack"><strong>{{ article.modelName }}</strong><small>{{ article.code }} · {{ article.coverType }}</small></div></td>
+          <td><span class="badge neutral">{{ article.segment }}</span></td><td>{{ article.material }}</td><td class="muted">{{ plantCodes(article.plantIds) }}</td>
+          <td class="numeric"><div class="cell-stack"><strong>₹{{ article.unitPrice.toLocaleString('en-IN') }}</strong><small>Cost ₹{{ article.unitCost.toLocaleString('en-IN') }}</small></div></td>
+          <td class="numeric"><span class="trend-up">{{ margin(article).toFixed(1) }}%</span></td><td><span [class]="article.active ? 'badge success' : 'badge neutral'">{{ article.active ? 'Active' : 'Inactive' }}</span></td>
+          <td><div class="row-actions"><button class="mini-btn" type="button" aria-label="Edit article" (click)="edit(article)"><svg lucidePencil size="14"></svg></button><button class="mini-btn" type="button" aria-label="Delete article" (click)="remove(article)"><svg lucideTrash2 size="14"></svg></button></div></td>
+        </tr> }
+      </tbody></table></div>
+      <div class="table-footer"><span>Showing {{ (page() - 1) * pageSize + 1 }}–{{ maxShown() }} of {{ filtered().length }} articles</span><div class="pagination"><button [disabled]="page() === 1" (click)="previousPage()"><svg lucideChevronLeft size="13"></svg></button>@for (number of pageNumbers(); track number) { <button [class.active]="page() === number" (click)="page.set(number)">{{ number }}</button> }<button [disabled]="page() === pages()" (click)="nextPage()"><svg lucideChevronRight size="13"></svg></button></div></div>
+    } @else { <div class="empty-state"><div><svg lucideBoxes size="28"></svg><h3>No articles match this search</h3><p>Try a different model name or add a new article reference.</p></div></div> }
+  </section>
+} @else {
+  <section class="panel edit-shell">
+    <div class="edit-header"><button type="button" aria-label="Back to articles" (click)="cancel()"><svg lucideArrowLeft size="17"></svg></button><div><h3>{{ editingId() ? 'Edit article' : 'Add a new article' }}</h3><p>Set the article identity, commercial values and production assignment.</p></div><span class="badge neutral">Article master</span></div>
+    <form class="edit-form" [formGroup]="form" (ngSubmit)="save()">
+      <section class="form-section"><h4>Article identity</h4><div class="form-grid">
+        <label class="field"><span>Article code *</span><input formControlName="code" placeholder="SIP-MOD-FSC-01" />@if (form.controls.code.touched && form.controls.code.invalid) { <small class="error">Use an SI Inter Pack code beginning with SIP-.</small> }</label>
+        <label class="field"><span>Model / article description *</span><input formControlName="modelName" placeholder="Front Seat Cover — Model" /></label>
+        <label class="field"><span>Vehicle segment *</span><select formControlName="segment"><option>Passenger</option><option>Commercial</option><option>Utility</option></select></label>
+        <label class="field"><span>Seat cover type *</span><input formControlName="coverType" placeholder="Front bucket set" /></label>
+        <label class="field wide"><span>Material *</span><input formControlName="material" placeholder="Knitted polyester" /></label>
+      </div></section>
+      <section class="form-section"><h4>Commercial & label data</h4><div class="form-grid">
+        <label class="field"><span>Standard unit cost (₹) *</span><input type="number" formControlName="unitCost" /></label><label class="field"><span>Standard unit price (₹) *</span><input type="number" formControlName="unitPrice" /></label>
+        <label class="field"><span>EAN-13 barcode *</span><input formControlName="barcode" placeholder="8904123001018" />@if (form.controls.barcode.touched && form.controls.barcode.invalid) { <small class="error">Enter the 13 digits printed on the barcode.</small> }</label>
+        <label class="check-card"><input type="checkbox" formControlName="active" /><span><strong>Active article</strong><small>Available in orders and scan screens</small></span></label>
+      </div></section>
+      <section class="form-section"><h4>Producing plants *</h4><div class="checkbox-grid">@for (plant of data.plants(); track plant.id) { <label class="check-card"><input type="checkbox" [checked]="selectedPlantIds().includes(plant.id)" (change)="togglePlant(plant.id)" /><span><strong>{{ plant.code }}</strong><small>{{ plant.name }}</small></span></label> }</div>@if (!selectedPlantIds().length) { <small class="error">Select at least one producing plant.</small> }</section>
+      <div class="form-actions"><button class="btn btn-secondary" type="button" (click)="cancel()">Cancel</button><button class="btn btn-primary" type="submit">{{ editingId() ? 'Save changes' : 'Create article' }}</button></div>
+    </form>
+  </section>
+}

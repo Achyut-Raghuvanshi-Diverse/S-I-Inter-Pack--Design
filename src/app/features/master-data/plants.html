@@ -1,0 +1,52 @@
+@if (view() === 'list') {
+  <section class="page-heading">
+    <div><div class="eyebrow">Master data</div><h2>Plants & facilities</h2><p>Maintain capacity, contacts and operating status for all production locations.</p></div>
+    <button class="btn btn-primary" type="button" (click)="create()"><svg lucidePlus size="16"></svg> Add plant</button>
+  </section>
+  <section class="panel">
+    <div class="master-toolbar">
+      <label class="input-icon"><svg lucideSearch size="16"></svg><input class="control" type="search" placeholder="Search code, plant, location or contact" [value]="search()" (input)="updateSearch($event)" /></label>
+      <select class="compact-select" aria-label="Filter status"><option>All statuses</option><option>On target</option><option>Behind</option><option>Over capacity</option></select>
+      @if (selected().length) { <span class="selection-note">{{ selected().length }} selected</span> }
+      <span class="spacer"></span><button class="btn btn-secondary" type="button"><svg lucideDownload size="15"></svg> Export</button>
+    </div>
+    @if (paged().length) {
+      <div class="data-table-wrap"><table class="data-table"><thead><tr>
+        <th><input type="checkbox" aria-label="Select page" [checked]="selected().length === paged().length" (change)="toggleAll()" /></th>
+        <th><button class="sort-button" (click)="sort('code')">Plant code <svg lucideArrowUpDown size="12"></svg></button></th>
+        <th><button class="sort-button" (click)="sort('name')">Facility <svg lucideArrowUpDown size="12"></svg></button></th>
+        <th>Plant head</th><th class="numeric">Capacity / month</th><th>Utilisation</th><th>Status</th><th aria-label="Actions"></th>
+      </tr></thead><tbody>
+        @for (plant of paged(); track plant.id) { <tr>
+          <td><input type="checkbox" [attr.aria-label]="'Select ' + plant.name" [checked]="selected().includes(plant.id)" (change)="toggle(plant.id)" /></td>
+          <td><div class="code-cell"><span class="code-token">{{ plant.code }}</span></div></td>
+          <td><div class="cell-stack"><strong>{{ plant.name }}</strong><small>{{ plant.location }}, {{ plant.state }}</small></div></td>
+          <td><div class="cell-stack"><strong>{{ plant.contact }}</strong><small>{{ plant.phone }}</small></div></td>
+          <td class="numeric tabular">{{ plant.capacity.toLocaleString('en-IN') }}</td>
+          <td><div class="capacity-cell"><span>{{ (plant.output / plant.capacity * 100).toFixed(0) }}%</span><div><span [style.width.%]="plant.output / plant.capacity * 100"></span></div></div></td>
+          <td><span [class]="'badge ' + statusClass(plant.status)">{{ plant.status }}</span></td>
+          <td><div class="row-actions"><button class="mini-btn" type="button" aria-label="Edit plant" (click)="edit(plant)"><svg lucidePencil size="14"></svg></button><button class="mini-btn" type="button" aria-label="Delete plant" (click)="remove(plant)"><svg lucideTrash2 size="14"></svg></button></div></td>
+        </tr> }
+      </tbody></table></div>
+      <div class="table-footer"><span>Showing {{ (page() - 1) * pageSize + 1 }}–{{ maxShown() }} of {{ filtered().length }} plants</span><div class="pagination"><button [disabled]="page() === 1" (click)="previousPage()"><svg lucideChevronLeft size="13"></svg></button>@for (number of pageNumbers(); track number) { <button [class.active]="page() === number" (click)="page.set(number)">{{ number }}</button> }<button [disabled]="page() === pages()" (click)="nextPage()"><svg lucideChevronRight size="13"></svg></button></div></div>
+    } @else { <div class="empty-state"><div><svg lucideSearch size="28"></svg><h3>No plants match this search</h3><p>Clear the search or add a new facility record.</p></div></div> }
+  </section>
+} @else {
+  <section class="panel edit-shell">
+    <div class="edit-header"><button type="button" aria-label="Back to plants" (click)="cancel()"><svg lucideArrowLeft size="17"></svg></button><div><h3>{{ editingId() ? 'Edit plant' : 'Add a new plant' }}</h3><p>Fields marked required must be completed before saving.</p></div><span class="badge neutral">Plant master</span></div>
+    <form class="edit-form" [formGroup]="form" (ngSubmit)="save()">
+      <section class="form-section"><h4>Facility identity</h4><div class="form-grid">
+        <label class="field"><span>Plant code *</span><input formControlName="code" placeholder="GGN-01" />@if (form.controls.code.touched && form.controls.code.invalid) { <small class="error">Use three letters, a hyphen and two digits.</small> }</label>
+        <label class="field"><span>Plant name *</span><input formControlName="name" placeholder="Gurgaon Plant 3" />@if (form.controls.name.touched && form.controls.name.invalid) { <small class="error">Enter a plant name.</small> }</label>
+        <label class="field"><span>Industrial location *</span><input formControlName="location" placeholder="Udyog Vihar" /></label>
+        <label class="field"><span>State *</span><input formControlName="state" placeholder="Haryana" /></label>
+      </div></section>
+      <section class="form-section"><h4>Capacity & operating status</h4><div class="form-grid">
+        <label class="field"><span>Monthly capacity (units) *</span><input type="number" formControlName="capacity" /></label><label class="field"><span>Current MTD output *</span><input type="number" formControlName="output" /></label>
+        <label class="field"><span>Operating status *</span><select formControlName="status"><option>On target</option><option>Behind</option><option>Over capacity</option></select></label>
+      </div></section>
+      <section class="form-section"><h4>Plant contact</h4><div class="form-grid"><label class="field"><span>Plant head *</span><input formControlName="contact" placeholder="Full name" /></label><label class="field"><span>Phone *</span><input formControlName="phone" placeholder="+91 98110 22041" />@if (form.controls.phone.touched && form.controls.phone.invalid) { <small class="error">Enter the phone as +91 12345 67890.</small> }</label></div></section>
+      <div class="form-actions"><button class="btn btn-secondary" type="button" (click)="cancel()">Cancel</button><button class="btn btn-primary" type="submit">{{ editingId() ? 'Save changes' : 'Create plant' }}</button></div>
+    </form>
+  </section>
+}

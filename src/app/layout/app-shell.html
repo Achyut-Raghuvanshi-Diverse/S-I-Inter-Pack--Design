@@ -1,0 +1,108 @@
+<div class="app-frame" [class.nav-open]="mobileNavOpen()">
+  <aside class="sidebar" aria-label="Primary navigation">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"><span>SI</span></div>
+      <div class="brand-copy">
+        <strong>SI INTER PACK</strong>
+        <span>Operations Control</span>
+      </div>
+      <button class="icon-btn close-nav" type="button" aria-label="Close navigation" (click)="closeNav()">
+        <svg lucideX size="20"></svg>
+      </button>
+    </div>
+
+    <nav class="nav-list">
+      @if (canSee('corporate')) {
+        <p class="nav-label">Overview</p>
+        <a routerLink="/dashboard" routerLinkActive="active" (click)="closeNav()">
+          <svg lucideLayoutDashboard size="19"></svg><span>Corporate dashboard</span>
+        </a>
+      }
+
+      @if (canSee('scan')) {
+        <p class="nav-label">Plant operations</p>
+        <a routerLink="/scan" routerLinkActive="active" (click)="closeNav()">
+          <svg lucideScanLine size="19"></svg><span>Scan & track</span>
+          @if (data.pendingScans()) { <em>{{ data.pendingScans() }}</em> }
+        </a>
+      }
+
+      @if (canSee('master')) {
+        <p class="nav-label">Records</p>
+        <a routerLink="/master-data/plants" routerLinkActive="active" (click)="closeNav()">
+          <svg lucideDatabase size="19"></svg><span>Plants</span>
+        </a>
+        <a routerLink="/master-data/articles" routerLinkActive="active" (click)="closeNav()">
+          <svg lucideBoxes size="19"></svg><span>Articles & models</span>
+        </a>
+      }
+
+      @if (canSee('sales')) {
+        <p class="nav-label">Commercial</p>
+        <a routerLink="/sales" routerLinkActive="active" (click)="closeNav()">
+          <svg lucideTruck size="19"></svg><span>Sales & dispatch</span>
+        </a>
+        <a routerLink="/reports" routerLinkActive="active" (click)="closeNav()">
+          <svg lucideFileChartColumn size="19"></svg><span>Reports centre</span>
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="#help"><svg lucideHelpCircle size="18"></svg><span>Help & support</span></a>
+      <a href="#settings"><svg lucideSettings size="18"></svg><span>System settings</span></a>
+      <div class="build-info"><span class="status-light"></span> All services operational <small>Build 26.07.16</small></div>
+    </div>
+  </aside>
+
+  <div class="mobile-scrim" (click)="closeNav()"></div>
+
+  <section class="workspace">
+    <header class="topbar">
+      <div class="topbar-leading">
+        <button class="icon-btn mobile-menu" type="button" aria-label="Open navigation" (click)="mobileNavOpen.set(true)">
+          <svg lucideMenu size="22"></svg>
+        </button>
+        <div>
+          <h1>{{ pageTitle() }}</h1>
+          <span class="topbar-date">{{ today }} · FY 2026–27</span>
+        </div>
+      </div>
+
+      <div class="topbar-tools">
+        <label class="global-search">
+          <svg lucideSearch size="18"></svg>
+          <input type="search" placeholder="Search plant, article or order" aria-label="Global search" />
+          <kbd>Ctrl K</kbd>
+        </label>
+        <button class="connection" type="button" [class.offline]="!data.online()" (click)="toggleConnection()" [attr.aria-label]="data.online() ? 'Go offline for demo' : 'Reconnect'">
+          @if (data.online()) { <svg lucideWifi size="17"></svg><span>Live</span> }
+          @else { <svg lucideWifiOff size="17"></svg><span>Offline</span> }
+        </button>
+        <button class="icon-btn notification" type="button" aria-label="Notifications">
+          <svg lucideBell size="19"></svg><span></span>
+        </button>
+        <div class="user-control">
+          <div class="avatar">{{ auth.initials() }}</div>
+          <div class="user-copy"><strong>{{ auth.userName() }}</strong><span>{{ auth.role() }}</span></div>
+          <select aria-label="Switch demo role" [value]="auth.role()" (change)="setRole($event)">
+            <option>Corporate Admin</option><option>Plant Operator</option><option>Sales</option>
+          </select>
+          <svg lucideChevronDown size="15"></svg>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <router-outlet />
+    </main>
+  </section>
+
+  @if (router.url.includes('/scan')) {
+    <nav class="operator-nav" aria-label="Operator navigation">
+      <a routerLink="/scan" routerLinkActive="active"><svg lucideScanLine size="22"></svg><span>Scan</span></a>
+      <a href="#recent"><svg lucideBoxes size="22"></svg><span>Recent</span></a>
+      <a href="#help"><svg lucideHelpCircle size="22"></svg><span>Help</span></a>
+    </nav>
+  }
+</div>

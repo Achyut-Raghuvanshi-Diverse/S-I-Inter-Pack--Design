@@ -1,0 +1,148 @@
+<section class="page-heading">
+  <div>
+    <div class="eyebrow">Enterprise overview</div>
+    <h2>Plant performance at a glance</h2>
+    <p>Production, commercial and capacity position across all SI Inter Pack facilities.</p>
+  </div>
+  <button class="btn btn-secondary" type="button"><svg lucideRefreshCw size="15"></svg> Refresh data</button>
+</section>
+
+<div class="filter-bar" aria-label="Dashboard filters">
+  <span class="filter-label"><svg lucideFilter size="14"></svg> Filters</span>
+  <select class="compact-select" aria-label="Date range">
+    <option>Month to date · Jul 2026</option>
+    <option>Last 30 days</option>
+    <option>Quarter to date</option>
+  </select>
+  <select class="compact-select" aria-label="Plant" [value]="data.selectedPlantId() ?? ''"
+    (change)="selectPlant($event)">
+    <option value="">All 15 plants</option>
+    @for (plant of data.plants(); track plant.id) { <option [value]="plant.id">{{ plant.name }}</option> }
+  </select>
+  <select class="compact-select" aria-label="Product category">
+    <option>All product categories</option>
+    <option>Seat covers</option>
+    <option>Interior sets</option>
+  </select>
+  <select class="compact-select" aria-label="Customer">
+    <option>All customers</option>
+    <option>Maruti Suzuki</option>
+    <option>Mahindra & Mahindra</option>
+    <option>Tata Motors</option>
+  </select>
+  <span class="filter-spacer"></span>
+  @if (selectedPlant()) {
+  <button class="active-filter" type="button" (click)="clearPlant()">{{ selectedPlant()!.code }} <span>×</span></button>
+  } @else {
+  <span class="filter-note">Updated 2 min ago</span>
+  }
+</div>
+
+<div class="kpi-grid">
+  <article class="kpi-card">
+    <div class="kpi-label"><span>Total production</span><svg lucideFactory size="16"></svg></div>
+    <div class="kpi-value">{{ selectedPlant() ? (selectedPlant()!.output | number) : '188,420' }}</div>
+    <div class="kpi-meta"><span class="trend-up"><svg lucideArrowUpRight size="11"></svg> 6.8%</span> vs Jun · units MTD
+    </div>
+  </article>
+  <article class="kpi-card">
+    <div class="kpi-label"><span>Revenue MTD</span><svg lucideCircleDollarSign size="16"></svg></div>
+    <div class="kpi-value">₹{{ (revenue() / 10000000).toFixed(2) }} Cr</div>
+    <div class="kpi-meta"><span class="trend-up"><svg lucideArrowUpRight size="11"></svg> 4.2%</span> vs last month
+    </div>
+  </article>
+  <article class="kpi-card">
+    <div class="kpi-label"><span>Gross margin</span><svg lucidePercent size="16"></svg></div>
+    <div class="kpi-value">31.6%</div>
+    <div class="kpi-meta"><span class="trend-down"><svg lucideArrowDownRight size="11"></svg> 0.7%</span> vs budget
+    </div>
+  </article>
+  <article class="kpi-card">
+    <div class="kpi-label"><span>Active plants</span><svg lucideFactory size="16"></svg></div>
+    <div class="kpi-value">{{ selectedPlant() ? 1 : data.activePlants() }}<small>/15</small></div>
+    <div class="kpi-meta"><span class="trend-up">11 on target</span> · 4 need attention</div>
+  </article>
+  <article class="kpi-card">
+    <div class="kpi-label"><span>Units dispatched</span><svg lucideTruck size="16"></svg></div>
+    <div class="kpi-value">164,280</div>
+    <div class="kpi-meta"><span class="trend-up"><svg lucideArrowUpRight size="11"></svg> 8.1%</span> dispatch run rate
+    </div>
+  </article>
+  <article class="kpi-card">
+    <div class="kpi-label"><span>Pending orders</span><svg lucideShoppingCart size="16"></svg></div>
+    <div class="kpi-value">47</div>
+    <div class="kpi-meta"><span class="trend-down">9 overdue</span> · 38 in production</div>
+  </article>
+</div>
+
+<div class="dashboard-grid">
+  <article class="panel chart-panel chart-wide">
+    <div class="panel-head">
+      <div>
+        <h3>Production trend</h3>
+        <p>Monthly finished trim output · units in thousands</p>
+      </div>
+      <span class="chart-total">FY total <strong>1.91M</strong></span>
+    </div>
+    <div class="chart-body">
+      <apx-chart [series]="lineSeries" [chart]="lineChart" [stroke]="lineStroke" [fill]="lineFill"
+        [colors]="['#554a91']" [grid]="grid" [xaxis]="xaxis" [yaxis]="lineYaxis" [tooltip]="tooltip"></apx-chart>
+    </div>
+  </article>
+
+  <article class="panel chart-panel">
+    <div class="panel-head">
+      <div>
+        <h3>Plant-wise production</h3>
+        <p>Click a plant bar to drill down</p>
+      </div>
+      @if (selectedPlant()) { <button class="text-btn" type="button" (click)="clearPlant()">Show all</button> }
+    </div>
+    <div class="chart-body clickable-chart">
+      <apx-chart [series]="barSeries" [chart]="barChart" [plotOptions]="barPlot"
+        [colors]="['#303566','#7564b4','#4f83c2','#8b91a7','#3a4178','#9484d0','#396eaf','#656b82']"
+        [dataLabels]="barDataLabels" [legend]="barLegend" [grid]="grid"
+        [xaxis]="{ categories: barCategories, labels: { style: { colors: '#767986', fontSize: '9px' } }, axisBorder: { show: false }, axisTicks: { show: false } }"
+        [yaxis]="barYaxis"></apx-chart>
+    </div>
+  </article>
+
+  <article class="panel chart-panel compact-chart">
+    <div class="panel-head">
+      <div>
+        <h3>Sales by vehicle segment</h3>
+        <p>Dispatch volume mix · MTD</p>
+      </div>
+    </div>
+    <div class="chart-body">
+      <apx-chart [series]="segmentSeries" [chart]="donutChart" [labels]="segmentLabels"
+        [colors]="['#303566','#7564b4','#4f83c2']" [legend]="donutLegend" [plotOptions]="donutPlot"
+        [dataLabels]="{ enabled: false }"></apx-chart>
+    </div>
+  </article>
+
+  <article class="panel plant-panel">
+    <div class="panel-head">
+      <div>
+        <h3>Plant network status</h3>
+        <p>15 plants across 10 operating locations</p>
+      </div>
+      <span class="attention-count">4 need attention</span>
+    </div>
+    <div class="plant-list">
+      @for (plant of data.plants().slice(0, 8); track plant.id) {
+      <button type="button" (click)="data.selectedPlantId.set(plant.id)"
+        [class.selected]="data.selectedPlantId() === plant.id">
+        <span class="location-code">{{ plant.code }}</span>
+        <span class="plant-place"><strong>{{ plant.name }}</strong><small>{{ plant.location }}, {{ plant.state
+            }}</small></span>
+        <span class="capacity"><strong>{{ (plant.output / plant.capacity * 100).toFixed(0)
+            }}%</strong><small>utilised</small></span>
+        <span class="badge" [class]="'badge ' + statusClass(plant.status)">{{ plant.status }}</span>
+      </button>
+      }
+    </div>
+    <div class="plant-footer"><span><i class="on"></i> 9 on target</span><span><i class="behind"></i> 4
+        behind</span><span><i class="over"></i> 2 over capacity</span><button>View all plants</button></div>
+  </article>
+</div>

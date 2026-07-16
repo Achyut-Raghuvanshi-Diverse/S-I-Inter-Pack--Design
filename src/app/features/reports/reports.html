@@ -1,0 +1,29 @@
+<section class="page-heading">
+  <div><div class="eyebrow">Analysis & exports</div><h2>Reports centre</h2><p>Run standard operating reports using the latest production and commercial data.</p></div>
+  <span class="data-freshness"><svg lucideRefreshCw size="14"></svg> Data refreshed today at 20:32</span>
+</section>
+
+<div class="report-catalog">
+  @for (report of reportTypes; track report.name) {
+    <button type="button" [class.selected]="selectedReport() === report.name" (click)="selectedReport.set(report.name)">
+      <span class="report-icon">
+        @switch (report.icon) { @case ('factory') { <svg lucideFactory size="20"></svg> } @case ('boxes') { <svg lucideBoxes size="20"></svg> } @case ('rupee') { <svg lucideIndianRupee size="20"></svg> } @case ('users') { <svg lucideUsers size="20"></svg> } @default { <svg lucidePackageOpen size="20"></svg> } }
+      </span>
+      <span class="report-copy"><small>{{ report.tag }}</small><strong>{{ report.name }}</strong><em>{{ report.description }}</em></span><svg lucideChevronRight size="17"></svg>
+    </button>
+  }
+</div>
+
+@if (selectedReport() === 'Plant-wise Production') {
+  <section class="report-output panel">
+    <div class="report-titlebar"><div><span class="report-number">PRD–001</span><h3>Plant-wise Production Report</h3><p>Finished seat-trim and interior-set output against plan.</p></div><div class="report-actions"><button class="btn btn-secondary" type="button" (click)="printReport()"><svg lucidePrinter size="15"></svg> Print / PDF</button><button class="btn btn-primary" type="button" (click)="exportCsv()"><svg lucideDownload size="15"></svg> Export CSV</button></div></div>
+    <div class="report-filters"><label><span>Date range</span><div><svg lucideCalendarDays size="14"></svg><input type="date" value="2026-07-01" /><i>to</i><input type="date" value="2026-07-16" /></div></label><label><span>Plant</span><select [value]="plantId() ?? ''" (change)="selectPlant($event)"><option value="">All 15 plants</option>@for (plant of data.plants(); track plant.id) { <option [value]="plant.id">{{ plant.code }} — {{ plant.name }}</option> }</select></label><label><span>Product category</span><select><option>All product categories</option><option>Seat covers</option><option>Interior sets</option></select></label><button class="btn btn-primary" type="button">Run report</button></div>
+    <div class="report-summary"><div><span>Planned output</span><strong>{{ targetTotal().toLocaleString('en-IN') }}</strong></div><div><span>Actual output</span><strong>{{ actualTotal().toLocaleString('en-IN') }}</strong></div><div><span>Plan achievement</span><strong [class.positive]="achievement() >= 95">{{ achievement().toFixed(1) }}%</strong></div><div><span>Rejected units</span><strong class="rejected">{{ rejectedTotal().toLocaleString('en-IN') }}</strong></div></div>
+    <div class="report-visual"><div class="chart-box"><div class="subhead"><strong>Target vs actual by plant</strong><span>Top 10 facilities shown</span></div><apx-chart [series]="chartSeries" [chart]="chart" [plotOptions]="plotOptions" [dataLabels]="dataLabels" [colors]="['#c8cbd5','#554a91']" [legend]="legend" [grid]="grid" [xaxis]="{ categories: categories, labels: { style: { colors: '#767986', fontSize: '9px' } }, axisBorder: { show: false }, axisTicks: { show: false } }" [yaxis]="yaxis"></apx-chart></div></div>
+    <div class="preview-head"><div><strong>Report preview</strong><span>{{ rows().length }} plant records</span></div><small>Figures in units · MTD through 16 Jul 2026</small></div>
+    <div class="data-table-wrap"><table class="data-table report-table"><thead><tr><th>Plant</th><th>Location</th><th class="numeric">Plan</th><th class="numeric">Actual</th><th class="numeric">Variance</th><th class="numeric">Rejected</th><th class="numeric">Utilisation</th><th>Status</th></tr></thead><tbody>@for (row of rows(); track row.plantId) { @let plant = data.plants()[row.plantId - 1]; <tr><td><div class="plant-name"><span>{{ plant.code }}</span><strong>{{ plant.name }}</strong></div></td><td>{{ plant.location }}, {{ plant.state }}</td><td class="numeric">{{ row.target.toLocaleString('en-IN') }}</td><td class="numeric primary-cell">{{ row.actual.toLocaleString('en-IN') }}</td><td class="numeric" [class.negative]="variance(row) < 0" [class.positive]="variance(row) >= 0">{{ variance(row) > 0 ? '+' : '' }}{{ variance(row).toLocaleString('en-IN') }}</td><td class="numeric">{{ row.rejected }}</td><td class="numeric">{{ utilization(row.plantId).toFixed(1) }}%</td><td><span [class]="plant.status === 'On target' ? 'badge success' : plant.status === 'Behind' ? 'badge danger' : 'badge warning'">{{ plant.status }}</span></td></tr> }</tbody></table></div>
+    <div class="report-footnote"><svg lucideFileChartColumn size="14"></svg><span>Generated from Scan & Track and production planning records. Rejections include QC-failed units only.</span><strong>SI Inter Pack · Internal</strong></div>
+  </section>
+} @else {
+  <section class="coming-report panel"><svg lucideFileChartColumn size="36"></svg><span>{{ selectedReport() }}</span><h3>Report template ready</h3><p>This report uses the same date, plant and category filters. Select Plant-wise Production to view the complete working preview in this build.</p><button class="btn btn-primary" type="button" (click)="selectedReport.set('Plant-wise Production')">Open working report</button></section>
+}
