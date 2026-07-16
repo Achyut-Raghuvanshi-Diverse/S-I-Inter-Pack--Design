@@ -1,8 +1,8 @@
 <section class="scan-heading">
   <div>
     <div class="eyebrow">Plant floor · {{ data.plantName(plantId()) }}</div>
-    <h2>Record material movement</h2>
-    <p>Scan an article label and confirm the production stage.</p>
+    <h2>Scan & Track</h2>
+    <p>Capture each production movement with a verified article, batch and quantity.</p>
   </div>
   <div class="shift-info"><span class="shift-dot"></span><strong>Shift A</strong><small>06:00–14:00 · Operator 042</small></div>
 </section>
@@ -32,7 +32,7 @@
 
       @if (step() === 2) {
         @if (!plantLocked()) { <button class="back-btn" type="button" (click)="step.set(1)"><svg lucideArrowLeft size="17"></svg> Back</button> }
-        <div class="step-title"><span>Step 2 of 4</span><h3>What is happening to this article?</h3><p>Choose the production stage you are recording.</p></div>
+        <div class="step-title"><span>Movement type</span><h3>Choose the production stage</h3><p>Select the event that should be recorded for this article.</p></div>
         <div class="stage-grid">
           @for (item of stages; track item.name) {
             <button type="button" [class.selected]="stage() === item.name" (click)="chooseStage(item.name)">
@@ -64,7 +64,7 @@
 
       @if (step() === 4 && result()?.type !== 'success') {
         <button class="back-btn" type="button" (click)="step.set(3)"><svg lucideArrowLeft size="17"></svg> Back</button>
-        <div class="step-title"><span>Step 4 of 4</span><h3>Confirm quantity and batch</h3><p>Check the details before recording this movement.</p></div>
+        <div class="step-title"><span>Final verification</span><h3>Confirm quantity and batch</h3><p>Review the movement details before saving the record.</p></div>
         <div class="confirm-article"><span class="article-token">{{ foundArticle()!.code.slice(4, 7) }}</span><div><strong>{{ foundArticle()!.modelName }}</strong><span>{{ foundArticle()!.code }} · {{ foundArticle()!.segment }}</span></div><span class="badge violet">{{ stage() }}</span></div>
         <div class="confirmation-grid">
           <label class="large-field"><span>Quantity</span><div class="stepper"><button type="button" (click)="decreaseQuantity()">−</button><input type="number" min="1" [value]="quantity()" (input)="updateQuantity($event)" /><button type="button" (click)="increaseQuantity()">+</button></div></label>

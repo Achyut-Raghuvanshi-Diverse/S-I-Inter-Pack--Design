@@ -1,4 +1,5 @@
 import { chromium } from 'playwright-core';
+import { statSync } from 'node:fs';
 
 const browser = await chromium.launch({ headless: true, executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
 const results = [];
@@ -15,11 +16,17 @@ async function inspect(name, path, viewport, action) {
   page.on('pageerror', (error) => errors.push(`${name}: ${error.message}`));
   await page.goto(`http://127.0.0.1:4200${path}`, { waitUntil: 'networkidle' });
   if (action) await action(page);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(100);
   await page.screenshot({ path: `artifacts/${name}.png`, fullPage: true });
   const dimensions = await page.evaluate(() => ({ viewport: innerWidth, body: document.body.scrollWidth, document: document.documentElement.scrollWidth, title: document.title, lazyChunks: performance.getEntriesByType('resource').filter((entry) => entry.name.includes('chunk-')).length }));
   results.push({ name, ...dimensions, overflow: dimensions.document > dimensions.viewport });
   await page.close();
 }
+
+await inspect('corporate-overview', '/dashboard', { width: 1440, height: 900 }, async (page) => {
+  await page.waitForTimeout(500);
+});
 
 await inspect('dashboard-desktop', '/dashboard', { width: 1440, height: 900 }, async (page) => {
   await page.selectOption('.filter-bar select[aria-label="Plant"]', '4');
@@ -34,6 +41,8 @@ await inspect('plant-dashboard-tablet', '/plant/dashboard/1', { width: 768, heig
   await page.getByRole('button', { name: '30 days' }).click();
   await page.waitForTimeout(500);
 });
+
+await inspect('scan-desktop', '/scan', { width: 1280, height: 800 });
 
 await inspect('scan-mobile', '/scan', { width: 390, height: 844 }, async (page) => {
   const firstAction = page.getByRole('button', { name: /Continue to stage/i });
@@ -74,10 +83,23 @@ await inspect('orders-desktop', '/master-data/orders', { width: 1366, height: 80
 for (const [name, path] of [
   ['plants-list', '/master-data/plants'], ['articles-list', '/master-data/articles'],
   ['inventory-list', '/master-data/inventory'], ['users-list', '/master-data/users'],
-  ['sales-ledger', '/sales'], ['reports', '/reports'],
+  ['sales-ledger', '/sales'],
 ]) {
   await inspect(name, path, { width: 1280, height: 800 });
 }
+
+await inspect('reports', '/reports', { width: 1280, height: 800 }, async (page) => {
+  for (const report of ['Plant-wise Production', 'Article-wise Sales', 'Profitability', 'Customer-wise Sales', 'Inventory Aging']) {
+    await page.getByRole('tab', { name: new RegExp(report) }).click();
+    check(`${report} report renders`, await page.locator('.report-table tbody tr').count() > 0);
+  }
+  await page.emulateMedia({ media: 'print' });
+  const printLayout = await page.evaluate(() => ({ documentWidth: document.documentElement.scrollWidth, viewportWidth: document.documentElement.clientWidth, reportWidth: document.querySelector('.report-output')?.scrollWidth ?? 0 }));
+  check('Report print layout fits page', printLayout.documentWidth <= printLayout.viewportWidth && printLayout.reportWidth <= printLayout.viewportWidth, JSON.stringify(printLayout));
+  await page.pdf({ path: 'artifacts/report-print.pdf', format: 'A4', landscape: true, printBackground: true, margin: { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' } });
+  check('Report PDF generated', statSync('artifacts/report-print.pdf').size > 5000);
+  await page.emulateMedia({ media: 'screen' });
+});
 
 const rolePage = await browser.newPage({ viewport: { width: 768, height: 1024 } });
 rolePage.on('pageerror', (error) => errors.push(`roles: ${error.message}`));
@@ -92,7 +114,7 @@ await rolePage.waitForURL(/plant\/dashboard$/);
 check('Plant scope guard blocks another plant', rolePage.url().endsWith('/plant/dashboard'));
 await rolePage.evaluate(() => { history.pushState({}, '', '/scan'); window.dispatchEvent(new PopStateEvent('popstate')); });
 await rolePage.waitForURL(/\/scan$/);
-await rolePage.getByText('What is happening to this article?').waitFor();
+await rolePage.getByText('Choose the production stage').waitFor();
 check('Operator scan skips plant selector', await rolePage.locator('app-scan select').count() === 0);
 
 await rolePage.selectOption('.user-control select', 'Sales');

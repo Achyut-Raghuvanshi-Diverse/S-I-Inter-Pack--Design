@@ -25,3 +25,26 @@
   .master-toolbar { flex-wrap: wrap; }.master-toolbar .input-icon { width: 100%; }.master-toolbar .spacer { display: none; }
   .form-grid { grid-template-columns: 1fr; }.form-grid .wide { grid-column: auto; }.checkbox-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* Shared data-management redesign */
+.master-toolbar { min-height: 54px; padding: 8px 10px; gap: 8px; background: var(--surface-raised); }
+.master-toolbar .input-icon { width: 340px; }
+.master-toolbar .input-icon input { height: 36px; }
+.code-token { min-width: 58px; padding: 6px 8px; border: 1px solid var(--violet-100); border-radius: 5px; background: var(--violet-50); color: var(--violet-800); }
+.capacity-cell div { height: 6px; overflow: hidden; border-radius: 8px; }
+.capacity-cell div span { border-radius: 8px; background: linear-gradient(90deg, var(--violet-600), var(--blue-500)); }
+.edit-shell { border-radius: var(--radius-lg); }
+.edit-header { min-height: 62px; padding: 11px 15px; background: linear-gradient(180deg, #fff, #fbfbfd); }
+.edit-header button { width: 38px; height: 38px; border-radius: 8px; }
+.edit-header h3 { font-size: 17px; }
+.edit-form { padding: 17px; }
+.form-section { margin-bottom: 18px; }
+.form-section h4 { margin-bottom: 10px; padding-bottom: 7px; color: var(--violet-800); font-size: 9px; letter-spacing: .07em; text-transform: uppercase; }
+.form-grid { gap: 11px; }
+.form-actions { margin: 7px -17px -17px; padding: 11px 17px; background: var(--surface-raised); }
+.checkbox-grid { gap: 9px; }
+.check-card { min-height: 44px; border-radius: 8px; }
+.check-card:has(input:checked) { background: var(--violet-50); border-color: var(--violet-400); }
+.form-error-summary { border-radius: 7px; }
+.master-toolbar .active-filter { height: 34px; border-radius: 7px; }
+@media (max-width: 720px) { .edit-form { padding: 18px; } .form-actions { margin-inline: -18px; margin-bottom: -18px; } }

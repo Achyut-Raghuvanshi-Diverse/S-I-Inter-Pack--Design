@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">SI Inter Pack</title>
+  <desc id="desc">SI monogram in ivory on a deep indigo circle</desc>
+  <circle cx="256" cy="256" r="252" fill="#40358f"/>
+  <text x="54" y="374" fill="#f8fff1" font-family="Georgia, 'Times New Roman', serif" font-size="348" font-weight="700" letter-spacing="-34">Si</text>
+</svg>

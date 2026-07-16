@@ -8,3 +8,12 @@
 @media (max-width: 1200px) { .ledger-summary { grid-template-columns: repeat(2, 1fr); }.ledger-toolbar { flex-wrap: wrap; }.result-count { margin-left: 0; } }
 @media (max-width: 650px) { .ledger-summary { grid-template-columns: 1fr; }.ledger-toolbar .input-icon { width: 100%; }.date-control { display: none; } }
 
+/* Commercial ledger redesign */
+.ledger-summary { margin-bottom: 12px; gap: 10px; }
+.ledger-summary article { min-height: 90px; padding: 12px; border-radius: var(--radius); box-shadow: var(--shadow-card); }
+.summary-icon { width: 36px; height: 36px; border-radius: 9px; }
+.ledger-summary strong { font-size: 19px; }
+.ledger-toolbar { min-height: 54px; padding: 8px 10px; gap: 8px; background: var(--surface-raised); }
+.ledger-toolbar .input-icon { width: 320px; }
+.date-control { height: 34px; border-radius: 7px; background: white; }
+.plant-code { padding: 6px 8px; border: 1px solid var(--violet-100); border-radius: 5px; background: var(--violet-50); color: var(--violet-800); }

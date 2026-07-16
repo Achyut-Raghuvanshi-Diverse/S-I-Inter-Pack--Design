@@ -247,3 +247,23 @@
     flex-wrap: wrap;
   }
 }
+
+/* 2026 control-system redesign */
+.active-filter { height: 34px; padding-inline: 10px; border-color: var(--violet-100); border-radius: 7px; background: var(--violet-50); }
+.plant-detail-action { height: 34px; padding-inline: 11px; border-radius: 7px; background: var(--violet-800); border-color: var(--violet-800); }
+.dashboard-grid { margin-top: 12px; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 12px; }
+.chart-panel { border-radius: var(--radius); }
+.chart-wide { grid-column: span 7; }
+.dashboard-grid > .chart-panel:nth-child(2) { grid-column: span 5; }
+.compact-chart { grid-column: span 4; }
+.plant-panel { grid-column: span 8; }
+.chart-body { min-height: 270px; padding: 5px 9px 0; }
+.chart-total { padding: 6px 9px; border-radius: 6px; background: var(--surface-muted); }
+.attention-count { padding: 5px 9px; border-radius: 6px; }
+.plant-list button { min-height: 55px; padding: 7px 10px; grid-template-columns: 48px minmax(100px, 1fr) 45px auto; gap: 6px; background: white; }
+.plant-list button:hover { background: var(--violet-50); }
+.plant-list button.selected { background: var(--violet-50); box-shadow: inset 4px 0 var(--violet-600); }
+.location-code { border-radius: 5px; background: var(--violet-50); color: var(--violet-800); }
+.plant-footer { min-height: 44px; padding-inline: 13px; background: var(--surface-raised); }
+@media (max-width: 1260px) { .dashboard-grid { grid-template-columns: 1fr; } .chart-wide, .dashboard-grid > .chart-panel:nth-child(2), .compact-chart, .plant-panel { grid-column: auto; } }
+@media (max-width: 600px) { .plant-list button { grid-template-columns: 48px 1fr 46px; } .plant-list .badge { grid-column: 2 / -1; justify-self: start; } }

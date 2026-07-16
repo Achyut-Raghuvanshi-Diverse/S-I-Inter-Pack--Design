@@ -43,13 +43,13 @@ export class PlantDashboard {
     return Math.round(this.plant().output / 26 + (seed % 120) - 55);
   }) }]);
   readonly trendCategories = computed(() => Array.from({ length: this.range() }, (_, index) => this.range() === 7 ? ['Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed'][index] : String(index + 1)));
-  readonly trendChart: any = { type: 'area', height: 245, toolbar: { show: false }, fontFamily: 'IBM Plex Sans', animations: { speed: 280 } };
-  readonly stageChart: any = { type: 'bar', height: 245, toolbar: { show: false }, fontFamily: 'IBM Plex Sans' };
-  readonly stagePlot: any = { bar: { horizontal: true, barHeight: '44%', borderRadius: 1, distributed: true } };
+  readonly trendChart: any = { type: 'area', height: 275, toolbar: { show: false }, fontFamily: 'IBM Plex Sans', animations: { speed: 320 } };
+  readonly stageChart: any = { type: 'bar', height: 275, toolbar: { show: false }, fontFamily: 'IBM Plex Sans' };
+  readonly stagePlot: any = { bar: { horizontal: true, barHeight: '48%', borderRadius: 4, distributed: true } };
   readonly dataLabels: any = { enabled: true, style: { fontSize: '9px', fontWeight: 700 }, offsetX: 8, formatter: (value: number) => value.toLocaleString('en-IN') };
-  readonly lineStroke: any = { width: 2.5, curve: 'straight' };
+  readonly lineStroke: any = { width: 3, curve: 'smooth' };
   readonly lineFill: any = { type: 'gradient', gradient: { opacityFrom: .2, opacityTo: .02, stops: [0, 95] } };
-  readonly grid: any = { borderColor: '#e8e9ed', strokeDashArray: 3 };
+  readonly grid: any = { borderColor: '#ececf3', strokeDashArray: 4 };
   readonly yaxis: any = { labels: { style: { colors: '#767986', fontSize: '9px' } } };
 
   time(value: Date): string { return new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date(value)); }

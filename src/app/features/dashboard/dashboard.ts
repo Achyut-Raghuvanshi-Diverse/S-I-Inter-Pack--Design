@@ -42,10 +42,10 @@ export class Dashboard {
 
   readonly lineSeries = [{ name: 'Production', data: [148, 152, 157, 155, 162, 168, 171, 174, 179, 176, 183, 188] }];
   readonly monthCategories = ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
-  readonly lineChart: any = { type: 'area', height: 255, toolbar: { show: false }, fontFamily: 'IBM Plex Sans', animations: { enabled: true, speed: 300 } };
-  readonly lineStroke: any = { curve: 'straight', width: 2.5 };
-  readonly lineFill: any = { type: 'gradient', gradient: { shadeIntensity: 0, opacityFrom: 0.22, opacityTo: 0.02, stops: [0, 90] } };
-  readonly grid: any = { borderColor: '#e8e9ed', strokeDashArray: 3, padding: { left: 8, right: 8 } };
+  readonly lineChart: any = { type: 'area', height: 285, toolbar: { show: false }, fontFamily: 'IBM Plex Sans', animations: { enabled: true, speed: 360 } };
+  readonly lineStroke: any = { curve: 'smooth', width: 3 };
+  readonly lineFill: any = { type: 'gradient', gradient: { shadeIntensity: 0, opacityFrom: 0.25, opacityTo: 0.015, stops: [0, 92] } };
+  readonly grid: any = { borderColor: '#ececf3', strokeDashArray: 4, padding: { left: 8, right: 8 } };
   readonly xaxis: any = { categories: this.monthCategories, labels: { style: { colors: '#767986', fontSize: '10px' } }, axisBorder: { show: false }, axisTicks: { show: false } };
   readonly lineYaxis: any = { labels: { formatter: (value: number) => `${value}k`, style: { colors: '#767986', fontSize: '10px' } } };
   readonly tooltip: any = { theme: 'light', x: { show: true } };
@@ -57,17 +57,17 @@ export class Dashboard {
     return this.displayedPlants().slice(0, 8).map((plant) => plant.code);
   }
   readonly barChart: any = {
-    type: 'bar', height: 255, toolbar: { show: false }, fontFamily: 'IBM Plex Sans',
+    type: 'bar', height: 285, toolbar: { show: false }, fontFamily: 'IBM Plex Sans',
     events: { dataPointSelection: (_event: unknown, _chart: unknown, options: { dataPointIndex: number }) => this.selectPlantByIndex(options.dataPointIndex) },
   };
-  readonly barPlot: any = { bar: { columnWidth: '46%', borderRadius: 1, distributed: true } };
+  readonly barPlot: any = { bar: { columnWidth: '42%', borderRadius: 4, distributed: true } };
   readonly barDataLabels: any = { enabled: false };
   readonly barLegend: any = { show: false };
   readonly barYaxis: any = { labels: { formatter: (value: number) => `${Math.round(value / 1000)}k`, style: { colors: '#767986', fontSize: '10px' } } };
 
   readonly segmentSeries = [62, 24, 14];
   readonly segmentLabels = ['Passenger', 'Utility', 'Commercial'];
-  readonly donutChart: any = { type: 'donut', height: 255, fontFamily: 'IBM Plex Sans' };
+  readonly donutChart: any = { type: 'donut', height: 285, fontFamily: 'IBM Plex Sans' };
   readonly donutLegend: any = { position: 'bottom', fontSize: '11px', markers: { width: 8, height: 8, radius: 0 }, itemMargin: { horizontal: 8, vertical: 4 } };
   readonly donutPlot: any = { pie: { donut: { size: '70%', labels: { show: true, total: { show: true, label: 'Total units', formatter: () => '188k' } } } } };
 

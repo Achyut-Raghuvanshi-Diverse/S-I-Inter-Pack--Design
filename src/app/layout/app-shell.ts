@@ -11,7 +11,6 @@ import {
   LucideHandshake,
   LucideLayoutDashboard,
   LucideMenu,
-  LucideLogOut,
   LucideScanLine,
   LucideSearch,
   LucideShoppingCart,
@@ -33,7 +32,7 @@ import { ToastOutlet } from './toast-outlet';
   selector: 'app-shell',
   imports: [
     RouterOutlet, RouterLink, RouterLinkActive, ToastOutlet, LucideBell, LucideBoxes, LucideChevronDown,
-    LucideDatabase, LucideFactory, LucideFileChartColumn, LucideHandshake, LucideLayoutDashboard, LucideLogOut, LucideMenu,
+    LucideDatabase, LucideFactory, LucideFileChartColumn, LucideHandshake, LucideLayoutDashboard, LucideMenu,
     LucideScanLine, LucideSearch, LucideShoppingCart, LucideTruck, LucideUserCircle, LucideUsers, LucideWarehouse, LucideWifi, LucideWifiOff, LucideX,
   ],
   templateUrl: './app-shell.html',

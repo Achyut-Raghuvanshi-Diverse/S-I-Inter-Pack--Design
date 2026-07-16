@@ -1,6 +1,6 @@
 <div class="app-frame" [class.nav-open]="mobileNavOpen()">
   <aside class="sidebar" aria-label="Primary navigation">
-    <div class="brand"><div class="brand-mark" aria-hidden="true"><span>SI</span></div><div class="brand-copy"><strong>SI INTER PACK</strong><span>Operations Control</span></div><button class="icon-btn close-nav" type="button" aria-label="Close navigation" (click)="closeNav()"><svg lucideX size="20"></svg></button></div>
+    <div class="brand"><img class="brand-mark" src="si-logo.svg" alt="SI Inter Pack logo" /><div class="brand-copy"><strong>SI INTER PACK</strong><span>Plant intelligence system</span></div><span class="brand-suite">OPS</span><button class="icon-btn close-nav" type="button" aria-label="Close navigation" (click)="closeNav()"><svg lucideX size="20"></svg></button></div>
 
     <nav class="nav-list">
       @if (auth.role() === 'Plant Operator') {
@@ -34,17 +34,12 @@
       }
     </nav>
 
-    <div class="sidebar-footer">
-      <button type="button" (click)="openSupport()"><svg lucideUserCircle size="18"></svg><span>{{ auth.role() === 'Plant Operator' ? 'My profile & support' : 'Help & support' }}</span></button>
-      <button type="button" (click)="signOut()"><svg lucideLogOut size="18"></svg><span>Sign out / reset demo</span></button>
-      <div class="build-info"><span class="status-light"></span> All services operational <small>Build 26.07.16</small></div>
-    </div>
   </aside>
 
   <div class="mobile-scrim" (click)="closeNav()"></div>
   <section class="workspace">
     <header class="topbar">
-      <div class="topbar-leading"><button class="icon-btn mobile-menu" type="button" aria-label="Open navigation" (click)="mobileNavOpen.set(true)"><svg lucideMenu size="22"></svg></button><div><h1>{{ pageTitle() }}</h1><span class="topbar-date">{{ today }} · FY 2026–27</span></div></div>
+      <div class="topbar-leading"><button class="icon-btn mobile-menu" type="button" aria-label="Open navigation" (click)="mobileNavOpen.set(true)"><svg lucideMenu size="22"></svg></button><img class="mobile-brand" src="si-logo.svg" alt="" /><div><span class="topbar-kicker">Operations / Live control</span><h1>{{ pageTitle() }}</h1><span class="topbar-date">{{ today }} · FY 2026–27</span></div></div>
       <div class="topbar-tools">
         <label class="global-search"><svg lucideSearch size="18"></svg><input type="search" placeholder="Search plant, article or order" aria-label="Global search" (keydown.enter)="performSearch($event)" /><kbd>Enter</kbd></label>
         <button class="connection" type="button" [class.offline]="!data.online()" (click)="toggleConnection()" [attr.aria-label]="data.online() ? 'Go offline for demo' : 'Reconnect'">@if (data.online()) { <svg lucideWifi size="17"></svg><span>Live</span> } @else { <svg lucideWifiOff size="17"></svg><span>Offline</span> }</button>
@@ -60,7 +55,7 @@
     </main>
   </section>
 
-  @if (router.url.includes('/scan') || router.url.includes('/plant/dashboard')) {
+  @if (auth.role() === 'Plant Operator' && (router.url.includes('/scan') || router.url.includes('/plant/dashboard'))) {
     <nav class="operator-nav" aria-label="Operator navigation"><a routerLink="/plant/dashboard" routerLinkActive="active"><svg lucideFactory size="22"></svg><span>My Plant</span></a><a routerLink="/scan" routerLinkActive="active"><svg lucideScanLine size="22"></svg><span>Scan</span></a><button type="button" (click)="openSupport()"><svg lucideUserCircle size="22"></svg><span>Profile</span></button></nav>
   }
   <app-toast-outlet />
