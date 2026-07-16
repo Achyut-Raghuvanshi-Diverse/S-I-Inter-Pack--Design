@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import {
   LucideArrowUpDown,
   LucideCalendarDays,
@@ -12,6 +13,7 @@ import {
 } from '@lucide/angular';
 import { DataStore } from '../../core/data.store';
 import { LedgerEntry } from '../../core/models';
+import { ToastService } from '../../core/toast.service';
 
 @Component({
   selector: 'app-sales',
@@ -21,9 +23,13 @@ import { LedgerEntry } from '../../core/models';
 })
 export class Sales {
   readonly data = inject(DataStore);
+  readonly toast = inject(ToastService);
+  private readonly route = inject(ActivatedRoute);
   readonly search = signal('');
   readonly plantId = signal<number | null>(null);
   readonly status = signal('All statuses');
+  readonly dateFrom = signal('2026-07-01');
+  readonly dateTo = signal('2026-07-16');
   readonly sortKey = signal<keyof LedgerEntry>('date');
   readonly ascending = signal(false);
   readonly page = signal(1);
@@ -32,7 +38,7 @@ export class Sales {
     const query = this.search().toLowerCase().trim(); const plantId = this.plantId(); const status = this.status(); const key = this.sortKey();
     return [...this.data.ledger()].filter((entry) => {
       const matchText = `${entry.invoice} ${entry.customer} ${this.data.articleName(entry.articleId)} ${this.data.plantName(entry.plantId)}`.toLowerCase();
-      return (!query || matchText.includes(query)) && (!plantId || entry.plantId === plantId) && (status === 'All statuses' || entry.status === status);
+      return (!query || matchText.includes(query)) && (!plantId || entry.plantId === plantId) && (status === 'All statuses' || entry.status === status) && entry.date >= this.dateFrom() && entry.date <= this.dateTo();
     }).sort((a, b) => { const result = String(a[key]).localeCompare(String(b[key]), undefined, { numeric: true }); return this.ascending() ? result : -result; });
   });
   readonly totalUnits = computed(() => this.filtered().reduce((sum, entry) => sum + entry.quantity, 0));
@@ -42,9 +48,13 @@ export class Sales {
   readonly pageNumbers = computed(() => Array.from({ length: this.pages() }, (_, index) => index + 1));
   readonly paged = computed(() => this.filtered().slice((this.page() - 1) * this.pageSize, this.page() * this.pageSize));
 
+  constructor() { this.plantId.set(Number(this.route.snapshot.queryParamMap.get('plant')) || null); }
+
   updateSearch(event: Event): void { this.search.set((event.target as HTMLInputElement).value); this.page.set(1); }
   setPlant(event: Event): void { this.plantId.set(Number((event.target as HTMLSelectElement).value) || null); this.page.set(1); }
   setStatus(event: Event): void { this.status.set((event.target as HTMLSelectElement).value); this.page.set(1); }
+  setDateFrom(event: Event): void { this.dateFrom.set((event.target as HTMLInputElement).value); this.page.set(1); }
+  setDateTo(event: Event): void { this.dateTo.set((event.target as HTMLInputElement).value); this.page.set(1); }
   sort(key: keyof LedgerEntry): void { if (this.sortKey() === key) this.ascending.update((value) => !value); else { this.sortKey.set(key); this.ascending.set(true); } }
   statusClass(status: string): string { return status === 'Delivered' ? 'success' : status === 'In transit' ? 'warning' : 'violet'; }
   value(entry: LedgerEntry): number { return entry.quantity * entry.rate; }
@@ -60,6 +70,6 @@ export class Sales {
       return [entry.date, this.data.plantName(entry.plantId), article.code, article.modelName, entry.customer, entry.quantity, entry.rate, this.value(entry), entry.status, entry.invoice];
     });
     const csv = [header, ...rows].map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\r\n');
-    const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); link.download = 'si-inter-pack-dispatch-ledger.csv'; link.click(); URL.revokeObjectURL(link.href);
+    const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); link.download = 'si-inter-pack-dispatch-ledger.csv'; link.click(); URL.revokeObjectURL(link.href); this.toast.success('Ledger export ready', `${this.filtered().length} filtered dispatch records were exported.`);
   }
 }

@@ -1,4 +1,4 @@
-import { Article, LedgerEntry, Plant, ProductionRow, ScanRecord } from './models';
+import { AppUser, Article, Customer, InventoryItem, LedgerEntry, Order, Plant, ProductionRow, ScanRecord } from './models';
 
 export const INITIAL_PLANTS: Plant[] = [
   { id: 1, code: 'GGN-01', name: 'Gurgaon Plant 1', location: 'Udyog Vihar', state: 'Haryana', capacity: 18500, output: 17120, status: 'On target', contact: 'Rajesh Kumar', phone: '+91 98110 22041' },
@@ -60,3 +60,41 @@ export const PRODUCTION_ROWS: ProductionRow[] = INITIAL_PLANTS.map((plant, index
   rejected: 22 + ((index * 11) % 74),
 }));
 
+export const INITIAL_CUSTOMERS: Customer[] = [
+  { id: 1, name: 'Maruti Suzuki India', code: 'MSIL', gstin: '06AAACM0829Q1ZK', contact: 'Ankit Malhotra', phone: '+91 98101 34120', city: 'Gurgaon', creditDays: 45, status: 'Active' },
+  { id: 2, name: 'Mahindra & Mahindra', code: 'M&M', gstin: '27AAACM3025E1ZZ', contact: 'Prasad Kulkarni', phone: '+91 98220 43121', city: 'Mumbai', creditDays: 60, status: 'Active' },
+  { id: 3, name: 'Hyundai Motor India', code: 'HMIL', gstin: '33AAACH2364M1ZP', contact: 'Sanjay Krishnan', phone: '+91 98400 53122', city: 'Chennai', creditDays: 45, status: 'Active' },
+  { id: 4, name: 'Tata Motors', code: 'TML', gstin: '27AAACT2727Q1ZW', contact: 'Rohit Deshpande', phone: '+91 98220 63123', city: 'Pune', creditDays: 60, status: 'Active' },
+  { id: 5, name: 'Ashok Leyland', code: 'ALL', gstin: '33AAACA4651L1ZS', contact: 'Naveen Iyer', phone: '+91 98400 73124', city: 'Chennai', creditDays: 30, status: 'On hold' },
+  { id: 6, name: 'Force Motors', code: 'FML', gstin: '27AAACB5060C1Z9', contact: 'Mehul Joshi', phone: '+91 98220 83125', city: 'Pune', creditDays: 45, status: 'Active' },
+];
+
+export const INITIAL_ORDERS: Order[] = Array.from({ length: 18 }, (_, index) => ({
+  id: 7001 + index,
+  poNumber: `PO/${index % 2 ? 'MSIL' : 'MML'}/26/${String(410 + index)}`,
+  customerId: (index % INITIAL_CUSTOMERS.length) + 1,
+  articleId: (index % 11) + 1,
+  plantId: (index % 15) + 1,
+  quantity: 400 + ((index * 175) % 1800),
+  rate: INITIAL_ARTICLES[index % 11].unitPrice,
+  dueDate: `2026-07-${String(18 + (index % 12)).padStart(2, '0')}`,
+  status: (['Draft', 'Confirmed', 'In Production', 'Dispatched', 'Invoiced'] as Order['status'][])[index % 5],
+}));
+
+export const INITIAL_INVENTORY: InventoryItem[] = Array.from({ length: 30 }, (_, index) => ({
+  id: 9001 + index,
+  plantId: (index % 15) + 1,
+  articleId: (index % 11) + 1,
+  quantity: 120 + ((index * 83) % 950),
+  reorderLevel: 180 + ((index % 4) * 60),
+  ageDays: 2 + ((index * 7) % 58),
+  updatedAt: `2026-07-${String(16 - (index % 6)).padStart(2, '0')}`,
+}));
+
+export const INITIAL_USERS: AppUser[] = [
+  { id: 1, name: 'Aditya Mehra', email: 'aditya.mehra@siinterpack.in', role: 'Corporate Admin', plantId: null, employeeCode: 'SIP-COR-004', status: 'Active' },
+  { id: 2, name: 'Rakesh Yadav', email: 'rakesh.yadav@siinterpack.in', role: 'Plant Operator', plantId: 1, employeeCode: 'SIP-GGN-042', status: 'Active' },
+  { id: 3, name: 'Sunita Kumari', email: 'sunita.kumari@siinterpack.in', role: 'Plant Operator', plantId: 3, employeeCode: 'SIP-MNS-018', status: 'Active' },
+  { id: 4, name: 'Nidhi Mehta', email: 'nidhi.mehta@siinterpack.in', role: 'Sales', plantId: null, employeeCode: 'SIP-SAL-011', status: 'Active' },
+  { id: 5, name: 'Ashish Rao', email: 'ashish.rao@siinterpack.in', role: 'Plant Operator', plantId: 11, employeeCode: 'SIP-BLR-027', status: 'Suspended' },
+];

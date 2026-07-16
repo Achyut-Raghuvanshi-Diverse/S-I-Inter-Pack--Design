@@ -1,18 +1,24 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import {
   LucideBell,
   LucideBoxes,
+  LucideFactory,
   LucideChevronDown,
   LucideDatabase,
   LucideFileChartColumn,
-  LucideHelpCircle,
+  LucideHandshake,
   LucideLayoutDashboard,
   LucideMenu,
+  LucideLogOut,
   LucideScanLine,
   LucideSearch,
-  LucideSettings,
+  LucideShoppingCart,
   LucideTruck,
+  LucideUserCircle,
+  LucideUsers,
+  LucideWarehouse,
   LucideWifi,
   LucideWifiOff,
   LucideX,
@@ -20,13 +26,15 @@ import {
 import { AuthStore } from '../core/auth.store';
 import { DataStore } from '../core/data.store';
 import { UserRole } from '../core/models';
+import { ToastService } from '../core/toast.service';
+import { ToastOutlet } from './toast-outlet';
 
 @Component({
   selector: 'app-shell',
   imports: [
-    RouterOutlet, RouterLink, RouterLinkActive, LucideBell, LucideBoxes, LucideChevronDown,
-    LucideDatabase, LucideFileChartColumn, LucideHelpCircle, LucideLayoutDashboard, LucideMenu,
-    LucideScanLine, LucideSearch, LucideSettings, LucideTruck, LucideWifi, LucideWifiOff, LucideX,
+    RouterOutlet, RouterLink, RouterLinkActive, ToastOutlet, LucideBell, LucideBoxes, LucideChevronDown,
+    LucideDatabase, LucideFactory, LucideFileChartColumn, LucideHandshake, LucideLayoutDashboard, LucideLogOut, LucideMenu,
+    LucideScanLine, LucideSearch, LucideShoppingCart, LucideTruck, LucideUserCircle, LucideUsers, LucideWarehouse, LucideWifi, LucideWifiOff, LucideX,
   ],
   templateUrl: './app-shell.html',
   styleUrl: './app-shell.scss',
@@ -35,29 +43,31 @@ export class AppShell {
   readonly auth = inject(AuthStore);
   readonly data = inject(DataStore);
   readonly router = inject(Router);
+  readonly toast = inject(ToastService);
   readonly mobileNavOpen = signal(false);
+  readonly notificationsOpen = signal(false);
+  private readonly navigation = toSignal(this.router.events, { initialValue: null });
   readonly today = new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).format(new Date());
   readonly pageTitle = computed(() => {
+    this.navigation();
     const path = this.router.url;
     if (path.includes('/scan')) return 'Scan & Track';
+    if (path.includes('/plant/dashboard')) return this.auth.role() === 'Plant Operator' ? 'My Plant' : 'Plant Dashboard';
     if (path.includes('/master-data/plants')) return 'Plant Master';
     if (path.includes('/master-data/articles')) return 'Article Master';
+    if (path.includes('/master-data/customers')) return 'Customers & OEMs';
+    if (path.includes('/master-data/orders')) return 'Purchase Orders';
+    if (path.includes('/master-data/inventory')) return 'Plant Inventory';
+    if (path.includes('/master-data/users')) return 'Users & Roles';
     if (path.includes('/sales')) return 'Sales & Dispatch';
     if (path.includes('/reports')) return 'Reports Centre';
     return 'Corporate Dashboard';
   });
 
-  canSee(area: 'corporate' | 'scan' | 'sales' | 'master'): boolean {
-    const role = this.auth.role();
-    if (role === 'Corporate Admin') return true;
-    if (role === 'Plant Operator') return area === 'scan';
-    return area === 'sales' || area === 'master';
-  }
-
   setRole(event: Event): void {
     const role = (event.target as HTMLSelectElement).value as UserRole;
     this.auth.setRole(role);
-    this.router.navigateByUrl(role === 'Plant Operator' ? '/scan' : role === 'Sales' ? '/sales' : '/dashboard');
+    this.router.navigateByUrl(role === 'Plant Operator' ? '/plant/dashboard' : role === 'Sales' ? '/master-data/orders' : '/dashboard');
   }
 
   toggleConnection(): void {
@@ -68,5 +78,20 @@ export class AppShell {
   closeNav(): void {
     this.mobileNavOpen.set(false);
   }
-}
 
+  performSearch(event: Event): void {
+    const query = (event.target as HTMLInputElement).value.trim();
+    if (!query) return;
+    const path = /^PO\//i.test(query) ? '/master-data/orders' : /^SIP-/i.test(query) ? '/master-data/articles' : '/master-data/customers';
+    this.router.navigate([path], { queryParams: { q: query } });
+    this.toast.info('Search applied', `Showing records that match “${query}”.`);
+  }
+
+  openSupport(): void { this.toast.info('Plant systems support', 'Call extension 224 or email ops.support@siinterpack.in.'); }
+  toggleNotifications(): void { this.notificationsOpen.update((value) => !value); }
+  signOut(): void {
+    this.auth.setRole('Corporate Admin');
+    this.router.navigateByUrl('/dashboard');
+    this.toast.success('Demo session reset', 'Returned to the Corporate Admin demonstration account.');
+  }
+}

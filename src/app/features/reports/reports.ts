@@ -14,6 +14,7 @@ import {
   LucideUsers,
 } from '@lucide/angular';
 import { DataStore } from '../../core/data.store';
+import { ToastService } from '../../core/toast.service';
 
 type ReportType = 'Plant-wise Production' | 'Article-wise Sales' | 'Profitability' | 'Customer-wise Sales' | 'Inventory Aging';
 
@@ -25,8 +26,10 @@ type ReportType = 'Plant-wise Production' | 'Article-wise Sales' | 'Profitabilit
 })
 export class Reports {
   readonly data = inject(DataStore);
+  readonly toast = inject(ToastService);
   readonly selectedReport = signal<ReportType>('Plant-wise Production');
   readonly plantId = signal<number | null>(null);
+  readonly productCategory = signal('All product categories');
   readonly reportTypes: { name: ReportType; description: string; icon: string; tag: string }[] = [
     { name: 'Plant-wise Production', description: 'Target, actual output, rejection and utilization by facility.', icon: 'factory', tag: 'Production' },
     { name: 'Article-wise Sales', description: 'Sales volume and realization by article and vehicle model.', icon: 'boxes', tag: 'Sales' },
@@ -52,14 +55,16 @@ export class Reports {
   readonly yaxis: any = { labels: { formatter: (value: number) => `${Math.round(value / 1000)}k`, style: { colors: '#767986', fontSize: '10px' } } };
 
   selectPlant(event: Event): void { this.plantId.set(Number((event.target as HTMLSelectElement).value) || null); }
+  selectCategory(event: Event): void { this.productCategory.set((event.target as HTMLSelectElement).value); }
   variance(row: { target: number; actual: number }): number { return row.actual - row.target; }
   utilization(plantId: number): number { const plant = this.data.plants().find((item) => item.id === plantId); return plant ? plant.output / plant.capacity * 100 : 0; }
   printReport(): void { window.print(); }
+  runReport(): void { this.data.refresh(); this.toast.info('Report running', `Refreshing ${this.selectedReport()} with the selected plant and date range.`); }
   exportCsv(): void {
     const content = [['Plant code', 'Plant', 'Location', 'Target units', 'Actual units', 'Variance', 'Rejected units', 'Utilization'], ...this.rows().map((row) => {
       const plant = this.data.plants().find((item) => item.id === row.plantId)!;
       return [plant.code, plant.name, `${plant.location}, ${plant.state}`, row.target, row.actual, this.variance(row), row.rejected, `${this.utilization(row.plantId).toFixed(1)}%`];
     })].map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\r\n');
-    const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([content], { type: 'text/csv' })); link.download = 'plant-wise-production-report.csv'; link.click(); URL.revokeObjectURL(link.href);
+    const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([content], { type: 'text/csv' })); link.download = 'plant-wise-production-report.csv'; link.click(); URL.revokeObjectURL(link.href); this.toast.success('Report export ready', `${this.rows().length} plant production rows were exported.`);
   }
 }

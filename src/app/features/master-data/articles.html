@@ -4,7 +4,7 @@
     <button class="btn btn-primary" type="button" (click)="create()"><svg lucidePlus size="16"></svg> Add article</button>
   </section>
   <section class="panel">
-    <div class="master-toolbar"><label class="input-icon"><svg lucideSearch size="16"></svg><input class="control" type="search" placeholder="Search article code, model or material" [value]="search()" (input)="updateSearch($event)" /></label><select class="compact-select"><option>All segments</option><option>Passenger</option><option>Commercial</option><option>Utility</option></select><select class="compact-select"><option>Active and inactive</option><option>Active only</option></select><span class="spacer"></span><button class="btn btn-secondary" type="button"><svg lucideDownload size="15"></svg> Export</button></div>
+    <div class="master-toolbar"><label class="input-icon"><svg lucideSearch size="16"></svg><input class="control" type="search" placeholder="Search article code, model or material" [value]="search()" (input)="updateSearch($event)" /></label><select class="compact-select" [value]="segmentFilter()" (change)="setSegment($event)"><option>All segments</option><option>Passenger</option><option>Commercial</option><option>Utility</option></select><select class="compact-select" [value]="activeFilter()" (change)="setActive($event)"><option>Active and inactive</option><option>Active only</option></select>@if (plantFilter()) { <button class="active-filter" type="button" (click)="clearPlantFilter()">{{ data.plants()[plantFilter()! - 1]?.code }} ×</button> }<span class="spacer"></span><button class="btn btn-secondary" type="button" (click)="exportCsv()"><svg lucideDownload size="15"></svg> Export CSV</button></div>
     @if (paged().length) {
       <div class="data-table-wrap"><table class="data-table"><thead><tr><th><button class="sort-button" (click)="sort('code')">Article code <svg lucideArrowUpDown size="12"></svg></button></th><th><button class="sort-button" (click)="sort('modelName')">Model / description <svg lucideArrowUpDown size="12"></svg></button></th><th>Segment</th><th>Material</th><th>Producing plants</th><th class="numeric">Cost / price</th><th class="numeric">Margin</th><th>Status</th><th></th></tr></thead><tbody>
         @for (article of paged(); track article.id) { <tr>
@@ -36,7 +36,8 @@
         <label class="check-card"><input type="checkbox" formControlName="active" /><span><strong>Active article</strong><small>Available in orders and scan screens</small></span></label>
       </div></section>
       <section class="form-section"><h4>Producing plants *</h4><div class="checkbox-grid">@for (plant of data.plants(); track plant.id) { <label class="check-card"><input type="checkbox" [checked]="selectedPlantIds().includes(plant.id)" (change)="togglePlant(plant.id)" /><span><strong>{{ plant.code }}</strong><small>{{ plant.name }}</small></span></label> }</div>@if (!selectedPlantIds().length) { <small class="error">Select at least one producing plant.</small> }</section>
-      <div class="form-actions"><button class="btn btn-secondary" type="button" (click)="cancel()">Cancel</button><button class="btn btn-primary" type="submit">{{ editingId() ? 'Save changes' : 'Create article' }}</button></div>
+      @if ((form.invalid || !selectedPlantIds().length) && form.touched) { <div class="form-error-summary">Complete all required article details and select at least one producing plant.</div> }
+      <div class="form-actions"><button class="btn btn-secondary" type="button" (click)="cancel()">Cancel</button><button class="btn btn-primary" type="submit" [disabled]="form.invalid || !selectedPlantIds().length">{{ editingId() ? 'Save changes' : 'Create article' }}</button></div>
     </form>
   </section>
 }

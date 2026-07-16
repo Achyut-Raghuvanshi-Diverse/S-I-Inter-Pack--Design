@@ -62,3 +62,46 @@ export interface ProductionRow {
   rejected: number;
 }
 
+export interface Customer {
+  id: number;
+  name: string;
+  code: string;
+  gstin: string;
+  contact: string;
+  phone: string;
+  city: string;
+  creditDays: number;
+  status: 'Active' | 'On hold';
+}
+
+export interface Order {
+  id: number;
+  poNumber: string;
+  customerId: number;
+  articleId: number;
+  plantId: number;
+  quantity: number;
+  rate: number;
+  dueDate: string;
+  status: 'Draft' | 'Confirmed' | 'In Production' | 'Dispatched' | 'Invoiced';
+}
+
+export interface InventoryItem {
+  id: number;
+  plantId: number;
+  articleId: number;
+  quantity: number;
+  reorderLevel: number;
+  ageDays: number;
+  updatedAt: string;
+}
+
+export interface AppUser {
+  id: number;
+  name: string;
+  email: string;
+  role: UserRole;
+  plantId: number | null;
+  employeeCode: string;
+  status: 'Active' | 'Suspended';
+}

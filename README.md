@@ -14,8 +14,9 @@ Open `http://localhost:4200`. Use the role selector in the top-right user contro
 ## Included workflows
 
 - Corporate KPI dashboard with ApexCharts and plant drill-down
+- Plant-scoped operator dashboard with production, stage funnel, capacity, trend and recent activity
 - Camera barcode/QR scan flow with manual fallback, validation, offline queue, retry and undo
-- Plant and article CRUD with dedicated forms, validation, sorting, search and pagination
+- Full CRUD for plants, articles, customers, purchase orders, inventory and users/roles
 - Filter-reactive sales and dispatch ledger with CSV export
 - Reports catalogue with a working Plant-wise Production report, CSV and print/PDF output
 - Signal-based mock data stores with 15 plants, 12 articles and realistic dispatch activity
@@ -26,5 +27,4 @@ Open `http://localhost:4200`. Use the role selector in the top-right user contro
 npm run build
 ```
 
-`scripts/visual-check.mjs` runs the key browser paths against a local dev server using the installed Chrome browser and writes temporary screenshots to `artifacts/`.
-
+`scripts/visual-check.mjs` audits every lazy route, the Corporate/Plant Operator/Sales guards and flows, CRUD save feedback, report export, scan touch targets, console errors and horizontal overflow from 390–1440px. It writes temporary screenshots to `artifacts/`.

@@ -13,6 +13,7 @@
   margin-left: 7px;
   font-size: 14px;
 }
+.plant-detail-action { height: 30px; padding: 0 9px; border: 1px solid var(--navy-800); background: var(--navy-800); color: white; font-size: 9px; font-weight: 700; cursor: pointer; }
 
 .kpi-value small {
   margin-left: 2px;
@@ -187,11 +188,11 @@
 }
 
 .plant-footer i.behind {
-  background: var(--red-500);
+  background: var(--amber-500);
 }
 
 .plant-footer i.over {
-  background: var(--amber-500);
+  background: var(--red-500);
 }
 
 .plant-footer button {

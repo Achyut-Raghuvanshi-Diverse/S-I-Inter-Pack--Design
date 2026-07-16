@@ -4,12 +4,12 @@
     <h2>Plant performance at a glance</h2>
     <p>Production, commercial and capacity position across all SI Inter Pack facilities.</p>
   </div>
-  <button class="btn btn-secondary" type="button"><svg lucideRefreshCw size="15"></svg> Refresh data</button>
+  <button class="btn btn-secondary" type="button" (click)="refresh()"><svg lucideRefreshCw size="15"></svg> Refresh data</button>
 </section>
 
 <div class="filter-bar" aria-label="Dashboard filters">
   <span class="filter-label"><svg lucideFilter size="14"></svg> Filters</span>
-  <select class="compact-select" aria-label="Date range">
+  <select class="compact-select" aria-label="Date range" [value]="dateRange()" (change)="setDateRange($event)">
     <option>Month to date · Jul 2026</option>
     <option>Last 30 days</option>
     <option>Quarter to date</option>
@@ -19,20 +19,22 @@
     <option value="">All 15 plants</option>
     @for (plant of data.plants(); track plant.id) { <option [value]="plant.id">{{ plant.name }}</option> }
   </select>
-  <select class="compact-select" aria-label="Product category">
+  <select class="compact-select" aria-label="Product category" [value]="category()" (change)="setCategory($event)">
     <option>All product categories</option>
-    <option>Seat covers</option>
-    <option>Interior sets</option>
+    <option>Passenger</option>
+    <option>Commercial</option>
+    <option>Utility</option>
   </select>
-  <select class="compact-select" aria-label="Customer">
+  <select class="compact-select" aria-label="Customer" [value]="customer()" (change)="setCustomer($event)">
     <option>All customers</option>
     <option>Maruti Suzuki</option>
     <option>Mahindra & Mahindra</option>
     <option>Tata Motors</option>
+    <option>Hyundai Motor India</option>
   </select>
   <span class="filter-spacer"></span>
   @if (selectedPlant()) {
-  <button class="active-filter" type="button" (click)="clearPlant()">{{ selectedPlant()!.code }} <span>×</span></button>
+  <button class="plant-detail-action" type="button" (click)="openPlant()">Open {{ selectedPlant()!.code }} dashboard</button><button class="active-filter" type="button" (click)="clearPlant()">{{ selectedPlant()!.code }} <span>×</span></button>
   } @else {
   <span class="filter-note">Updated 2 min ago</span>
   }
@@ -131,7 +133,7 @@
     </div>
     <div class="plant-list">
       @for (plant of data.plants().slice(0, 8); track plant.id) {
-      <button type="button" (click)="data.selectedPlantId.set(plant.id)"
+      <button type="button" (click)="openPlant(plant.id)"
         [class.selected]="data.selectedPlantId() === plant.id">
         <span class="location-code">{{ plant.code }}</span>
         <span class="plant-place"><strong>{{ plant.name }}</strong><small>{{ plant.location }}, {{ plant.state
@@ -143,6 +145,6 @@
       }
     </div>
     <div class="plant-footer"><span><i class="on"></i> 9 on target</span><span><i class="behind"></i> 4
-        behind</span><span><i class="over"></i> 2 over capacity</span><button>View all plants</button></div>
+        behind</span><span><i class="over"></i> 2 over capacity</span><button type="button" (click)="viewAllPlants()">View all plants</button></div>
   </article>
 </div>

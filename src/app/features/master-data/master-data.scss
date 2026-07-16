@@ -18,9 +18,10 @@
 .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }.form-grid .wide { grid-column: 1 / -1; }
 .form-actions { margin: 6px -20px -20px; padding: 13px 20px; display: flex; justify-content: flex-end; gap: 8px; background: #f8f8fa; border-top: 1px solid var(--border); }
 .checkbox-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }.check-card { min-height: 44px; padding: 7px 9px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); cursor: pointer; }.check-card:has(input:checked) { border-color: var(--violet-400); background: #faf9ff; }.check-card input { accent-color: var(--violet-600); }.check-card span { display: grid; }.check-card strong { color: var(--ink-800); font-size: 10px; }.check-card small { color: var(--ink-500); font-size: 8px; }
+.form-error-summary { margin: 0 0 13px; padding: 9px 11px; color: var(--red-700); background: var(--red-50); border: 1px solid var(--red-200); font-size: 10px; }
+.master-toolbar .active-filter { height: 30px; padding: 0 8px; border: 1px solid #d7d1ef; background: #f3f0fc; color: var(--violet-700); font-size: 9px; font-weight: 700; cursor: pointer; }
 
 @media (max-width: 720px) {
   .master-toolbar { flex-wrap: wrap; }.master-toolbar .input-icon { width: 100%; }.master-toolbar .spacer { display: none; }
   .form-grid { grid-template-columns: 1fr; }.form-grid .wide { grid-column: auto; }.checkbox-grid { grid-template-columns: 1fr 1fr; }
 }
-

@@ -1,6 +1,6 @@
 import { computed, Injectable, signal } from '@angular/core';
-import { INITIAL_ARTICLES, INITIAL_LEDGER, INITIAL_PLANTS, INITIAL_SCANS, PRODUCTION_ROWS } from './mock-data';
-import { Article, LedgerEntry, Plant, ScanRecord, ScanStage } from './models';
+import { INITIAL_ARTICLES, INITIAL_CUSTOMERS, INITIAL_INVENTORY, INITIAL_LEDGER, INITIAL_ORDERS, INITIAL_PLANTS, INITIAL_SCANS, INITIAL_USERS, PRODUCTION_ROWS } from './mock-data';
+import { AppUser, Article, Customer, InventoryItem, LedgerEntry, Order, Plant, ScanRecord, ScanStage } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class DataStore {
@@ -9,8 +9,14 @@ export class DataStore {
   readonly scans = signal<ScanRecord[]>(structuredClone(INITIAL_SCANS));
   readonly ledger = signal<LedgerEntry[]>(structuredClone(INITIAL_LEDGER));
   readonly productionRows = signal(structuredClone(PRODUCTION_ROWS));
+  readonly customers = signal<Customer[]>(structuredClone(INITIAL_CUSTOMERS));
+  readonly orders = signal<Order[]>(structuredClone(INITIAL_ORDERS));
+  readonly inventory = signal<InventoryItem[]>(structuredClone(INITIAL_INVENTORY));
+  readonly users = signal<AppUser[]>(structuredClone(INITIAL_USERS));
   readonly selectedPlantId = signal<number | null>(null);
   readonly online = signal(true);
+  readonly dataState = signal<'ready' | 'loading' | 'error'>('ready');
+  readonly dataError = signal('');
 
   readonly pendingScans = computed(() => this.scans().filter((scan) => scan.syncStatus === 'Pending').length);
   readonly totalOutput = computed(() => this.plants().reduce((sum, plant) => sum + plant.output, 0));
@@ -23,6 +29,18 @@ export class DataStore {
   articleName(id: number): string {
     return this.articles().find((article) => article.id === id)?.modelName ?? 'Unknown article';
   }
+
+  customerName(id: number): string {
+    return this.customers().find((customer) => customer.id === id)?.name ?? 'Unknown customer';
+  }
+
+  refresh(): void {
+    this.dataState.set('loading');
+    this.dataError.set('');
+    window.setTimeout(() => this.dataState.set('ready'), 450);
+  }
+
+  retry(): void { this.refresh(); }
 
   savePlant(value: Omit<Plant, 'id'> & { id?: number }): void {
     this.plants.update((plants) => {
@@ -47,6 +65,26 @@ export class DataStore {
   deleteArticle(id: number): void {
     this.articles.update((articles) => articles.filter((article) => article.id !== id));
   }
+
+  saveCustomer(value: Omit<Customer, 'id'> & { id?: number }): void {
+    this.customers.update((items) => this.upsert(items, value));
+  }
+  deleteCustomer(id: number): void { this.customers.update((items) => items.filter((item) => item.id !== id)); }
+
+  saveOrder(value: Omit<Order, 'id'> & { id?: number }): void {
+    this.orders.update((items) => this.upsert(items, value));
+  }
+  deleteOrder(id: number): void { this.orders.update((items) => items.filter((item) => item.id !== id)); }
+
+  saveInventory(value: Omit<InventoryItem, 'id'> & { id?: number }): void {
+    this.inventory.update((items) => this.upsert(items, value));
+  }
+  deleteInventory(id: number): void { this.inventory.update((items) => items.filter((item) => item.id !== id)); }
+
+  saveUser(value: Omit<AppUser, 'id'> & { id?: number }): void {
+    this.users.update((items) => this.upsert(items, value));
+  }
+  deleteUser(id: number): void { this.users.update((items) => items.filter((item) => item.id !== id)); }
 
   addScan(input: { plantId: number; stage: ScanStage; articleCode: string; quantity: number; batch: string }): { ok: boolean; message: string } {
     const normalized = input.articleCode.trim().toUpperCase();
@@ -80,5 +118,10 @@ export class DataStore {
     if (!this.online()) return;
     this.scans.update((scans) => scans.map((scan) => scan.syncStatus === 'Pending' ? { ...scan, syncStatus: 'Synced' } : scan));
   }
-}
 
+  private upsert<T extends { id: number }>(items: T[], value: Omit<T, 'id'> & { id?: number }): T[] {
+    if (value.id) return items.map((item) => item.id === value.id ? { ...item, ...value } as T : item);
+    const id = Math.max(...items.map((item) => item.id), 0) + 1;
+    return [...items, { ...value, id } as T];
+  }
+}

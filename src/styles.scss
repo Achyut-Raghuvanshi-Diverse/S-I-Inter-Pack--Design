@@ -61,6 +61,7 @@ h1, h2, h3, h4, p { margin-top: 0; }
 .btn-secondary:hover { background: var(--surface-muted); color: var(--ink-900); }
 .btn-danger { background: white; border-color: var(--red-200); color: var(--red-700); }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn:active:not(:disabled), .mini-btn:active { transform: translateY(1px); }
 
 .field { display: grid; gap: 6px; }
 .field > span, .field > label { color: var(--ink-700); font-size: 11px; font-weight: 650; }

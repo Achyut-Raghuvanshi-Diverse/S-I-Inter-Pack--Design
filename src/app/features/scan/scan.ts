@@ -15,7 +15,9 @@ import {
   LucideX,
 } from '@lucide/angular';
 import { DataStore } from '../../core/data.store';
+import { AuthStore } from '../../core/auth.store';
 import { ScanStage } from '../../core/models';
+import { ToastService } from '../../core/toast.service';
 
 @Component({
   selector: 'app-scan',
@@ -29,6 +31,8 @@ import { ScanStage } from '../../core/models';
 })
 export class Scan implements OnDestroy {
   readonly data = inject(DataStore);
+  readonly auth = inject(AuthStore);
+  readonly toast = inject(ToastService);
   readonly step = signal(1);
   readonly plantId = signal(1);
   readonly stage = signal<ScanStage>('Packed');
@@ -50,18 +54,24 @@ export class Scan implements OnDestroy {
     const code = this.articleCode().trim().toUpperCase();
     return this.data.articles().find((article) => article.code === code || article.barcode === this.articleCode().trim()) ?? null;
   });
-  readonly recentScans = computed(() => this.data.scans().slice(0, 10));
+  readonly plantLocked = computed(() => this.auth.role() === 'Plant Operator');
+  readonly recentScans = computed(() => this.data.scans().filter((scan) => !this.plantLocked() || scan.plantId === this.auth.assignedPlantId()).slice(0, 10));
   readonly recentUnits = computed(() => this.recentScans().reduce((sum, scan) => sum + scan.quantity, 0));
   private reader?: BrowserMultiFormatReader;
   private controls?: IScannerControls;
 
   constructor() {
+    if (this.auth.role() === 'Plant Operator') {
+      this.plantId.set(this.auth.assignedPlantId());
+      this.step.set(2);
+    }
     effect(() => {
       if (this.data.online()) this.data.retryPending();
     });
   }
 
   setPlant(event: Event): void {
+    if (this.plantLocked()) return;
     this.plantId.set(Number((event.target as HTMLSelectElement).value));
   }
 
@@ -146,6 +156,8 @@ export class Scan implements OnDestroy {
 
   plantName(): string { return this.data.plantName(this.plantId()); }
   time(date: Date): string { return new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date(date)); }
+  undo(id: number): void { this.data.undoScan(id); this.toast.info('Scan removed', 'The movement was removed from this device’s recent activity.'); }
+  retrySync(): void { this.data.online.set(true); this.data.retryPending(); this.toast.success('Sync complete', 'Pending plant-floor scans have been sent successfully.'); }
 
   private tone(frequency: number, duration: number): void {
     try {

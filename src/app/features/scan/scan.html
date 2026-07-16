@@ -8,7 +8,7 @@
 </section>
 
 @if (!data.online()) {
-  <div class="offline-banner"><svg lucideWifiOff size="18"></svg><div><strong>Working offline</strong><span>Scans are safe on this device and will sync automatically.</span></div><b>{{ data.pendingScans() }} pending</b></div>
+  <div class="offline-banner"><svg lucideWifiOff size="18"></svg><div><strong>Working offline</strong><span>Scans are safe on this device and will sync automatically.</span></div><b>{{ data.pendingScans() }} pending</b><button type="button" (click)="retrySync()">Retry sync</button></div>
 }
 
 <div class="scan-layout">
@@ -31,7 +31,7 @@
       }
 
       @if (step() === 2) {
-        <button class="back-btn" type="button" (click)="step.set(1)"><svg lucideArrowLeft size="17"></svg> Back</button>
+        @if (!plantLocked()) { <button class="back-btn" type="button" (click)="step.set(1)"><svg lucideArrowLeft size="17"></svg> Back</button> }
         <div class="step-title"><span>Step 2 of 4</span><h3>What is happening to this article?</h3><p>Choose the production stage you are recording.</p></div>
         <div class="stage-grid">
           @for (item of stages; track item.name) {
@@ -95,7 +95,7 @@
         <article>
           <div class="recent-icon" [class.pending]="scan.syncStatus === 'Pending'"><svg lucidePackageCheck size="18"></svg></div>
           <div class="recent-copy"><strong>{{ scan.articleName }}</strong><span>{{ scan.articleCode }} · {{ scan.batch }}</span><small><svg lucideClock3 size="11"></svg>{{ time(scan.timestamp) }} · {{ scan.stage }} · <b>{{ scan.quantity }} units</b></small></div>
-          <button type="button" aria-label="Undo scan" title="Undo scan" (click)="data.undoScan(scan.id)"><svg lucideRotateCcw size="15"></svg></button>
+          <button type="button" aria-label="Undo scan" title="Undo scan" (click)="undo(scan.id)"><svg lucideRotateCcw size="15"></svg></button>
           <span class="sync-status" [class.pending]="scan.syncStatus === 'Pending'">{{ scan.syncStatus }}</span>
         </article>
       } @empty {

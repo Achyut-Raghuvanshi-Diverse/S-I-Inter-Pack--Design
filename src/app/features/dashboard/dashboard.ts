@@ -1,5 +1,6 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { ChartComponent } from 'ng-apexcharts';
 import {
   LucideArrowDownRight,
@@ -13,6 +14,7 @@ import {
   LucideTruck,
 } from '@lucide/angular';
 import { DataStore } from '../../core/data.store';
+import { ToastService } from '../../core/toast.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -26,11 +28,16 @@ import { DataStore } from '../../core/data.store';
 })
 export class Dashboard {
   readonly data = inject(DataStore);
+  readonly router = inject(Router);
+  readonly toast = inject(ToastService);
 
   readonly selectedPlant = computed(() => this.data.plants().find((plant) => plant.id === this.data.selectedPlantId()) ?? null);
+  readonly dateRange = signal('Month to date · Jul 2026');
+  readonly category = signal('All product categories');
+  readonly customer = signal('All customers');
   readonly displayedPlants = computed(() => this.selectedPlant() ? [this.selectedPlant()!] : this.data.plants());
   readonly revenue = computed(() => this.data.ledger()
-    .filter((entry) => !this.data.selectedPlantId() || entry.plantId === this.data.selectedPlantId())
+    .filter((entry) => (!this.data.selectedPlantId() || entry.plantId === this.data.selectedPlantId()) && (this.customer() === 'All customers' || entry.customer === this.customer()) && (this.category() === 'All product categories' || this.data.articles().find((article) => article.id === entry.articleId)?.segment === this.category()))
     .reduce((sum, entry) => sum + entry.quantity * entry.rate, 0));
 
   readonly lineSeries = [{ name: 'Production', data: [148, 152, 157, 155, 162, 168, 171, 174, 179, 176, 183, 188] }];
@@ -68,6 +75,9 @@ export class Dashboard {
     const value = Number((event.target as HTMLSelectElement).value);
     this.data.selectedPlantId.set(value || null);
   }
+  setDateRange(event: Event): void { this.dateRange.set((event.target as HTMLSelectElement).value); }
+  setCategory(event: Event): void { this.category.set((event.target as HTMLSelectElement).value); }
+  setCustomer(event: Event): void { this.customer.set((event.target as HTMLSelectElement).value); }
 
   selectPlantByIndex(index: number): void {
     const plant = this.displayedPlants().slice(0, 8)[index];
@@ -78,7 +88,11 @@ export class Dashboard {
     this.data.selectedPlantId.set(null);
   }
 
+  refresh(): void { this.data.refresh(); this.toast.info('Dashboard refreshing', 'Loading the latest production and dispatch position.'); }
+  openPlant(id = this.data.selectedPlantId()): void { if (id) this.router.navigate(['/plant/dashboard', id]); }
+  viewAllPlants(): void { this.router.navigateByUrl('/master-data/plants'); }
+
   statusClass(status: string): string {
-    return status === 'On target' ? 'success' : status === 'Behind' ? 'danger' : 'warning';
+    return status === 'On target' ? 'success' : status === 'Behind' ? 'warning' : 'danger';
   }
 }
