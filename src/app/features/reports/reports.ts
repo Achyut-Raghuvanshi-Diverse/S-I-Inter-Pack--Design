@@ -15,12 +15,14 @@ import {
 } from '@lucide/angular';
 import { DataStore } from '../../core/data.store';
 import { ToastService } from '../../core/toast.service';
+import { Pagination } from '../../shared/pagination/pagination';
+import { SearchSelect } from '../../shared/search-select/search-select';
 
 type ReportType = 'Plant-wise Production' | 'Article-wise Sales' | 'Profitability' | 'Customer-wise Sales' | 'Inventory Aging';
 
 @Component({
   selector: 'app-reports',
-  imports: [ChartComponent, LucideBoxes, LucideCalendarDays, LucideChevronRight, LucideDownload, LucideFactory, LucideFileChartColumn, LucideIndianRupee, LucidePackageOpen, LucidePrinter, LucideRefreshCw, LucideUsers],
+  imports: [ChartComponent, Pagination, SearchSelect, LucideBoxes, LucideCalendarDays, LucideChevronRight, LucideDownload, LucideFactory, LucideFileChartColumn, LucideIndianRupee, LucidePackageOpen, LucidePrinter, LucideRefreshCw, LucideUsers],
   templateUrl: './reports.html',
   styleUrl: './reports.scss',
 })
@@ -28,8 +30,12 @@ export class Reports {
   readonly data = inject(DataStore);
   readonly toast = inject(ToastService);
   readonly selectedReport = signal<ReportType>('Plant-wise Production');
+  readonly page = signal(1);
+  readonly pageSize = 10;
+  readonly printAll = signal(false);
   readonly plantId = signal<number | null>(null);
   readonly productCategory = signal('All product categories');
+  readonly plantOptions = computed(() => [{ value: null, label: 'All 15 plants', description: 'Enterprise-wide scope' }, ...this.data.plants().map((plant) => ({ value: plant.id, label: `${plant.code} — ${plant.name}`, description: `${plant.location}, ${plant.state}` }))]);
   readonly reportTypes: { name: ReportType; description: string; icon: string; tag: string }[] = [
     { name: 'Plant-wise Production', description: 'Target, actual output, rejection and utilization by facility.', icon: 'factory', tag: 'Production' },
     { name: 'Article-wise Sales', description: 'Sales volume and realization by article and vehicle model.', icon: 'boxes', tag: 'Sales' },
@@ -72,6 +78,11 @@ export class Reports {
     .filter((item) => !this.plantId() || item.plantId === this.plantId())
     .map((item) => ({ item, plant: this.data.plants().find((plant) => plant.id === item.plantId)!, article: this.data.articles().find((article) => article.id === item.articleId)! }))
     .sort((a, b) => b.item.ageDays - a.item.ageDays));
+  readonly displayProductionRows = computed(() => this.pageSlice(this.rows()));
+  readonly displayArticleSalesRows = computed(() => this.pageSlice(this.articleSalesRows()));
+  readonly displayProfitabilityRows = computed(() => this.pageSlice(this.profitabilityRows()));
+  readonly displayCustomerSalesRows = computed(() => this.pageSlice(this.customerSalesRows()));
+  readonly displayInventoryRows = computed(() => this.pageSlice(this.inventoryRows()));
   readonly summaryCards = computed<{ label: string; value: string; tone?: string }[]>(() => {
     switch (this.selectedReport()) {
       case 'Article-wise Sales': {
@@ -132,16 +143,19 @@ export class Reports {
   readonly grid: any = { borderColor: '#e8e9ed', strokeDashArray: 3 };
   readonly yaxis: any = { labels: { formatter: (value: number) => `${Math.round(value / 1000)}k`, style: { colors: '#767986', fontSize: '10px' } } };
 
-  selectPlant(event: Event): void { this.plantId.set(Number((event.target as HTMLSelectElement).value) || null); }
-  selectCategory(event: Event): void { this.productCategory.set((event.target as HTMLSelectElement).value); }
+  selectReport(report: ReportType): void { this.selectedReport.set(report); this.page.set(1); }
+  selectPlantValue(value: string | number | null): void { this.plantId.set(Number(value) || null); this.page.set(1); }
+  selectPlant(event: Event): void { this.plantId.set(Number((event.target as HTMLSelectElement).value) || null); this.page.set(1); }
+  selectCategory(event: Event): void { this.productCategory.set((event.target as HTMLSelectElement).value); this.page.set(1); }
   variance(row: { target: number; actual: number }): number { return row.actual - row.target; }
   utilization(plantId: number): number { const plant = this.data.plants().find((item) => item.id === plantId); return plant ? plant.output / plant.capacity * 100 : 0; }
   currency(value: number): string { return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value); }
   printReport(): void {
     const previousTitle = document.title;
     document.title = `SI Inter Pack - ${this.selectedReport()}`;
-    window.addEventListener('afterprint', () => { document.title = previousTitle; }, { once: true });
-    window.print();
+    this.printAll.set(true);
+    window.addEventListener('afterprint', () => { document.title = previousTitle; this.printAll.set(false); }, { once: true });
+    window.setTimeout(() => window.print());
   }
   runReport(): void { this.data.refresh(); this.toast.info('Report running', `Refreshing ${this.selectedReport()} with the selected plant and date range.`); }
   exportCsv(): void {
@@ -155,5 +169,11 @@ export class Reports {
     }
     const content = table.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\r\n');
     const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([content], { type: 'text/csv' })); link.download = `${this.selectedReport().toLowerCase().replaceAll(' ', '-')}-report.csv`; link.click(); URL.revokeObjectURL(link.href); this.toast.success('Report export ready', `${this.previewCount()} rows were exported.`);
+  }
+
+  private pageSlice<T>(rows: T[]): T[] {
+    if (this.printAll()) return rows;
+    const start = (this.page() - 1) * this.pageSize;
+    return rows.slice(start, start + this.pageSize);
   }
 }

@@ -48,7 +48,7 @@
 
 @media print {
   :host { display: block; width: 100%; }
-  .reports-heading, .report-catalog, .report-actions, .report-filters { display: none !important; }
+  .reports-heading, .report-catalog, .report-actions, .report-filters, app-pagination { display: none !important; }
   .report-output { overflow: visible !important; border: 0 !important; box-shadow: none !important; }
   .report-titlebar { min-height: auto; padding: 0 0 7mm; background: white; border-bottom: 2px solid #40358f; }
   .report-titlebar h3 { font-size: 16pt; }.report-titlebar p { font-size: 8pt; }

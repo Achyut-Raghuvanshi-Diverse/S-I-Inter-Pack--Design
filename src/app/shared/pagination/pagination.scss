@@ -1,0 +1,2 @@
+:host { display: block; }.pagination-shell b { color: var(--ink-700); font-weight: 750; }.pagination button:disabled { opacity: .38; cursor: not-allowed; }.pagination button:focus-visible { position: relative; z-index: 1; }
+@media (max-width: 520px) { .pagination-shell { align-items: flex-start; flex-direction: column; gap: 7px; }.pagination { width: 100%; }.pagination button { flex: 1; } }

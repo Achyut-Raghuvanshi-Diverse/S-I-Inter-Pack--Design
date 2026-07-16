@@ -1,91 +1,60 @@
 <section class="page-heading reports-heading">
-  <div>
-    <div class="eyebrow">Business intelligence</div>
-    <h2>Reports centre</h2>
-    <p>Analyse live operational and commercial performance, then export a board-ready report.</p>
-  </div>
+  <div><div class="eyebrow">Business intelligence</div><h2>Reports centre</h2><p>Analyse operational and commercial performance, then export a board-ready report.</p></div>
   <span class="data-freshness"><i></i><span><b>Data current</b>Refreshed today at 20:32</span></span>
 </section>
 
 <div class="report-catalog" role="tablist" aria-label="Report types">
   @for (report of reportTypes; track report.name) {
-    <button type="button" role="tab" [attr.aria-selected]="selectedReport() === report.name" [class.selected]="selectedReport() === report.name" (click)="selectedReport.set(report.name)">
-      <span class="report-icon">
-        @switch (report.icon) {
-          @case ('factory') { <svg lucideFactory size="18"></svg> }
-          @case ('boxes') { <svg lucideBoxes size="18"></svg> }
-          @case ('rupee') { <svg lucideIndianRupee size="18"></svg> }
-          @case ('users') { <svg lucideUsers size="18"></svg> }
-          @default { <svg lucidePackageOpen size="18"></svg> }
-        }
-      </span>
-      <span class="report-copy"><small>{{ report.tag }}</small><strong>{{ report.name }}</strong></span>
-      <svg lucideChevronRight size="15"></svg>
+    <button type="button" role="tab" [attr.aria-selected]="selectedReport() === report.name" [class.selected]="selectedReport() === report.name" (click)="selectReport(report.name)">
+      <span class="report-icon">@switch (report.icon) { @case ('factory') { <svg lucideFactory size="18"></svg> } @case ('boxes') { <svg lucideBoxes size="18"></svg> } @case ('rupee') { <svg lucideIndianRupee size="18"></svg> } @case ('users') { <svg lucideUsers size="18"></svg> } @default { <svg lucidePackageOpen size="18"></svg> } }</span>
+      <span class="report-copy"><small>{{ report.tag }}</small><strong>{{ report.name }}</strong></span><svg lucideChevronRight size="15"></svg>
     </button>
   }
 </div>
 
 <section class="report-output panel">
   <div class="report-titlebar">
-    <div class="report-identity">
-      <span class="report-number">{{ reportCode() }}</span>
-      <div><h3>{{ selectedReport() }}</h3><p>{{ selectedMeta().description }}</p></div>
-    </div>
-    <div class="report-actions">
-      <button class="btn btn-secondary print-action" type="button" (click)="printReport()"><svg lucidePrinter size="15"></svg><span>Print / PDF</span></button>
-      <button class="btn btn-primary" type="button" (click)="exportCsv()"><svg lucideDownload size="15"></svg><span>Export CSV</span></button>
-    </div>
+    <div class="report-identity"><span class="report-number">{{ reportCode() }}</span><div><h3>{{ selectedReport() }}</h3><p>{{ selectedMeta().description }}</p></div></div>
+    <div class="report-actions"><button class="btn btn-secondary print-action" type="button" (click)="printReport()"><svg lucidePrinter size="15"></svg><span>Print / PDF</span></button><button class="btn btn-primary" type="button" (click)="exportCsv()"><svg lucideDownload size="15"></svg><span>Export CSV</span></button></div>
   </div>
-
-  <div class="report-filters">
+  <div class="report-filters filter-toolbar">
     <label class="date-filter"><span>Reporting period</span><div><svg lucideCalendarDays size="14"></svg><input aria-label="Start date" type="date" value="2026-07-01" /><i>to</i><input aria-label="End date" type="date" value="2026-07-16" /></div></label>
-    <label><span>Plant scope</span><select [value]="plantId() ?? ''" (change)="selectPlant($event)"><option value="">All 15 plants</option>@for (plant of data.plants(); track plant.id) { <option [value]="plant.id">{{ plant.code }} — {{ plant.name }}</option> }</select></label>
+    <app-search-select label="Plant scope" ariaLabel="Filter report by plant" [options]="plantOptions()" [value]="plantId()" (valueChange)="selectPlantValue($event)" />
     <label><span>Product category</span><select [value]="productCategory()" (change)="selectCategory($event)"><option>All product categories</option><option>Seat covers</option><option>Interior sets</option></select></label>
     <button class="btn btn-primary run-report" type="button" (click)="runReport()"><svg lucideRefreshCw size="14"></svg>Run report</button>
   </div>
-
-  <div class="report-summary">
-    @for (item of summaryCards(); track item.label) {
-      <div><span>{{ item.label }}</span><strong [class.positive]="item.tone === 'positive'" [class.negative]="item.tone === 'negative'">{{ item.value }}</strong></div>
-    }
-  </div>
-
-  <div class="report-visual">
-    <div class="chart-box">
-      <div class="subhead"><div><strong>{{ selectedReport() }} overview</strong><span>Current filtered result</span></div><small>{{ previewCount() }} records</small></div>
-      <apx-chart [series]="chartSeries" [chart]="chart" [plotOptions]="plotOptions" [dataLabels]="dataLabels" [colors]="['#7669bb', '#2b2858']" [legend]="legend" [grid]="grid" [xaxis]="{ categories: categories, labels: { style: { colors: '#767986', fontSize: '9px' } }, axisBorder: { show: false }, axisTicks: { show: false } }" [yaxis]="yaxis"></apx-chart>
-    </div>
-  </div>
-
+  <div class="report-summary">@for (item of summaryCards(); track item.label) { <div><span>{{ item.label }}</span><strong [class.positive]="item.tone === 'positive'" [class.negative]="item.tone === 'negative'">{{ item.value }}</strong></div> }</div>
+  <div class="report-visual"><div class="chart-box"><div class="subhead"><div><strong>{{ selectedReport() }} overview</strong><span>Current filtered result</span></div><small>{{ previewCount() }} records</small></div><apx-chart [series]="chartSeries" [chart]="chart" [plotOptions]="plotOptions" [dataLabels]="dataLabels" [colors]="['#7669bb', '#2b2858']" [legend]="legend" [grid]="grid" [xaxis]="{ categories: categories, labels: { style: { colors: '#767986', fontSize: '9px' } }, axisBorder: { show: false }, axisTicks: { show: false } }" [yaxis]="yaxis"></apx-chart></div></div>
   <div class="preview-head"><div><strong>Detailed results</strong><span>{{ previewCount() }} records in the current view</span></div><small>MTD through 16 Jul 2026 · values in INR where applicable</small></div>
   <div class="data-table-wrap report-table-wrap">
     @switch (selectedReport()) {
       @case ('Plant-wise Production') {
         <table class="data-table report-table"><thead><tr><th>Plant</th><th>Location</th><th class="numeric">Plan</th><th class="numeric">Actual</th><th class="numeric">Variance</th><th class="numeric">Rejected</th><th class="numeric">Utilisation</th><th>Status</th></tr></thead><tbody>
-          @for (row of rows(); track row.plantId) { @let plant = data.plants()[row.plantId - 1]; <tr><td><div class="plant-name"><span>{{ plant.code }}</span><strong>{{ plant.name }}</strong></div></td><td>{{ plant.location }}, {{ plant.state }}</td><td class="numeric">{{ row.target.toLocaleString('en-IN') }}</td><td class="numeric primary-cell">{{ row.actual.toLocaleString('en-IN') }}</td><td class="numeric" [class.negative]="variance(row) < 0" [class.positive]="variance(row) >= 0">{{ variance(row) > 0 ? '+' : '' }}{{ variance(row).toLocaleString('en-IN') }}</td><td class="numeric">{{ row.rejected }}</td><td class="numeric">{{ utilization(row.plantId).toFixed(1) }}%</td><td><span [class]="plant.status === 'On target' ? 'badge success' : plant.status === 'Behind' ? 'badge warning' : 'badge danger'">{{ plant.status }}</span></td></tr> }
+          @for (row of displayProductionRows(); track row.plantId) { @let plant = data.plants()[row.plantId - 1]; <tr><td><div class="plant-name"><span>{{ plant.code }}</span><strong>{{ plant.name }}</strong></div></td><td>{{ plant.location }}, {{ plant.state }}</td><td class="numeric">{{ row.target.toLocaleString('en-IN') }}</td><td class="numeric primary-cell">{{ row.actual.toLocaleString('en-IN') }}</td><td class="numeric" [class.negative]="variance(row) < 0" [class.positive]="variance(row) >= 0">{{ variance(row) > 0 ? '+' : '' }}{{ variance(row).toLocaleString('en-IN') }}</td><td class="numeric">{{ row.rejected }}</td><td class="numeric">{{ utilization(row.plantId).toFixed(1) }}%</td><td><span [class]="plant.status === 'On target' ? 'badge success' : plant.status === 'Behind' ? 'badge warning' : 'badge danger'">{{ plant.status }}</span></td></tr> }
         </tbody></table>
       }
       @case ('Article-wise Sales') {
         <table class="data-table report-table"><thead><tr><th>Article</th><th>Model / segment</th><th class="numeric">Orders</th><th class="numeric">Units sold</th><th class="numeric">Avg. rate</th><th class="numeric">Sales value</th></tr></thead><tbody>
-          @for (row of articleSalesRows(); track row.article.id) { <tr><td><span class="code-chip">{{ row.article.code }}</span></td><td><div class="cell-stack"><strong>{{ row.article.modelName }}</strong><small>{{ row.article.segment }} · {{ row.article.material }}</small></div></td><td class="numeric">{{ row.orders }}</td><td class="numeric primary-cell">{{ row.units.toLocaleString('en-IN') }}</td><td class="numeric">{{ currency(row.averageRate) }}</td><td class="numeric primary-cell">{{ currency(row.revenue) }}</td></tr> }
+          @for (row of displayArticleSalesRows(); track row.article.id) { <tr><td><span class="code-chip">{{ row.article.code }}</span></td><td><div class="cell-stack"><strong>{{ row.article.modelName }}</strong><small>{{ row.article.segment }} · {{ row.article.material }}</small></div></td><td class="numeric">{{ row.orders }}</td><td class="numeric primary-cell">{{ row.units.toLocaleString('en-IN') }}</td><td class="numeric">{{ currency(row.averageRate) }}</td><td class="numeric primary-cell">{{ currency(row.revenue) }}</td></tr> }
         </tbody></table>
       }
       @case ('Profitability') {
         <table class="data-table report-table"><thead><tr><th>Article</th><th>Model</th><th class="numeric">Standard cost</th><th class="numeric">Sale price</th><th class="numeric">Unit margin</th><th class="numeric">Margin %</th><th>Assessment</th></tr></thead><tbody>
-          @for (row of profitabilityRows(); track row.article.id) { <tr><td><span class="code-chip">{{ row.article.code }}</span></td><td>{{ row.article.modelName }}</td><td class="numeric">{{ currency(row.article.unitCost) }}</td><td class="numeric">{{ currency(row.article.unitPrice) }}</td><td class="numeric primary-cell">{{ currency(row.margin) }}</td><td class="numeric" [class.positive]="row.marginPercent >= 30">{{ row.marginPercent.toFixed(1) }}%</td><td><span [class]="row.marginPercent >= 30 ? 'badge success' : 'badge warning'">{{ row.marginPercent >= 30 ? 'Healthy' : 'Review' }}</span></td></tr> }
+          @for (row of displayProfitabilityRows(); track row.article.id) { <tr><td><span class="code-chip">{{ row.article.code }}</span></td><td>{{ row.article.modelName }}</td><td class="numeric">{{ currency(row.article.unitCost) }}</td><td class="numeric">{{ currency(row.article.unitPrice) }}</td><td class="numeric primary-cell">{{ currency(row.margin) }}</td><td class="numeric" [class.positive]="row.marginPercent >= 30">{{ row.marginPercent.toFixed(1) }}%</td><td><span [class]="row.marginPercent >= 30 ? 'badge success' : 'badge warning'">{{ row.marginPercent >= 30 ? 'Healthy' : 'Review' }}</span></td></tr> }
         </tbody></table>
       }
       @case ('Customer-wise Sales') {
         <table class="data-table report-table"><thead><tr><th>Customer</th><th>Account</th><th class="numeric">Shipments</th><th class="numeric">Delivered</th><th class="numeric">Units</th><th class="numeric">Sales value</th><th>Status</th></tr></thead><tbody>
-          @for (row of customerSalesRows(); track row.name) { <tr><td><div class="cell-stack"><strong>{{ row.name }}</strong><small>{{ row.customer?.city || 'National account' }}</small></div></td><td><span class="code-chip">{{ row.customer?.code || 'OEM' }}</span></td><td class="numeric">{{ row.shipments }}</td><td class="numeric">{{ row.delivered }}</td><td class="numeric primary-cell">{{ row.units.toLocaleString('en-IN') }}</td><td class="numeric primary-cell">{{ currency(row.revenue) }}</td><td><span [class]="row.customer?.status === 'On hold' ? 'badge warning' : 'badge success'">{{ row.customer?.status || 'Active' }}</span></td></tr> }
+          @for (row of displayCustomerSalesRows(); track row.name) { <tr><td><div class="cell-stack"><strong>{{ row.name }}</strong><small>{{ row.customer?.city || 'National account' }}</small></div></td><td><span class="code-chip">{{ row.customer?.code || 'OEM' }}</span></td><td class="numeric">{{ row.shipments }}</td><td class="numeric">{{ row.delivered }}</td><td class="numeric primary-cell">{{ row.units.toLocaleString('en-IN') }}</td><td class="numeric primary-cell">{{ currency(row.revenue) }}</td><td><span [class]="row.customer?.status === 'On hold' ? 'badge warning' : 'badge success'">{{ row.customer?.status || 'Active' }}</span></td></tr> }
         </tbody></table>
       }
       @case ('Inventory Aging') {
         <table class="data-table report-table"><thead><tr><th>Plant</th><th>Article</th><th class="numeric">On hand</th><th class="numeric">Reorder level</th><th class="numeric">Age</th><th>Stock position</th><th>Last updated</th></tr></thead><tbody>
-          @for (row of inventoryRows(); track row.item.id) { <tr><td><div class="plant-name"><span>{{ row.plant.code }}</span><strong>{{ row.plant.name }}</strong></div></td><td><div class="cell-stack"><strong>{{ row.article.code }}</strong><small>{{ row.article.modelName }}</small></div></td><td class="numeric primary-cell">{{ row.item.quantity.toLocaleString('en-IN') }}</td><td class="numeric">{{ row.item.reorderLevel.toLocaleString('en-IN') }}</td><td class="numeric" [class.negative]="row.item.ageDays > 30">{{ row.item.ageDays }} days</td><td><span [class]="row.item.quantity < row.item.reorderLevel ? 'badge danger' : 'badge success'">{{ row.item.quantity < row.item.reorderLevel ? 'Reorder' : 'Healthy' }}</span></td><td>{{ row.item.updatedAt }}</td></tr> }
+          @for (row of displayInventoryRows(); track row.item.id) { <tr><td><div class="plant-name"><span>{{ row.plant.code }}</span><strong>{{ row.plant.name }}</strong></div></td><td><div class="cell-stack"><strong>{{ row.article.code }}</strong><small>{{ row.article.modelName }}</small></div></td><td class="numeric primary-cell">{{ row.item.quantity.toLocaleString('en-IN') }}</td><td class="numeric">{{ row.item.reorderLevel.toLocaleString('en-IN') }}</td><td class="numeric" [class.negative]="row.item.ageDays > 30">{{ row.item.ageDays }} days</td><td><span [class]="row.item.quantity < row.item.reorderLevel ? 'badge danger' : 'badge success'">{{ row.item.quantity < row.item.reorderLevel ? 'Reorder' : 'Healthy' }}</span></td><td>{{ row.item.updatedAt }}</td></tr> }
         </tbody></table>
       }
     }
   </div>
+  <app-pagination [page]="page()" [total]="previewCount()" [pageSize]="pageSize" noun="report records" (pageChange)="page.set($event)" />
   <div class="report-footnote"><svg lucideFileChartColumn size="14"></svg><span>Generated from verified operational records. Filters and totals shown above are applied to this output.</span><strong>SI Inter Pack · Internal</strong></div>
 </section>

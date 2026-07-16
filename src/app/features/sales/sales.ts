@@ -3,8 +3,6 @@ import { ActivatedRoute } from '@angular/router';
 import {
   LucideArrowUpDown,
   LucideCalendarDays,
-  LucideChevronLeft,
-  LucideChevronRight,
   LucideDownload,
   LucideIndianRupee,
   LucidePackageCheck,
@@ -14,10 +12,12 @@ import {
 import { DataStore } from '../../core/data.store';
 import { LedgerEntry } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
+import { Pagination } from '../../shared/pagination/pagination';
+import { SearchSelect } from '../../shared/search-select/search-select';
 
 @Component({
   selector: 'app-sales',
-  imports: [LucideArrowUpDown, LucideCalendarDays, LucideChevronLeft, LucideChevronRight, LucideDownload, LucideIndianRupee, LucidePackageCheck, LucideSearch, LucideTruck],
+  imports: [Pagination, SearchSelect, LucideArrowUpDown, LucideCalendarDays, LucideDownload, LucideIndianRupee, LucidePackageCheck, LucideSearch, LucideTruck],
   templateUrl: './sales.html',
   styleUrl: './sales.scss',
 })
@@ -27,6 +27,7 @@ export class Sales {
   private readonly route = inject(ActivatedRoute);
   readonly search = signal('');
   readonly plantId = signal<number | null>(null);
+  readonly plantOptions = computed(() => [{ value: null, label: 'All plants', description: 'All dispatch locations' }, ...this.data.plants().map((plant) => ({ value: plant.id, label: `${plant.code} — ${plant.name}`, description: `${plant.location}, ${plant.state}` }))]);
   readonly status = signal('All statuses');
   readonly dateFrom = signal('2026-07-01');
   readonly dateTo = signal('2026-07-16');
@@ -52,6 +53,7 @@ export class Sales {
 
   updateSearch(event: Event): void { this.search.set((event.target as HTMLInputElement).value); this.page.set(1); }
   setPlant(event: Event): void { this.plantId.set(Number((event.target as HTMLSelectElement).value) || null); this.page.set(1); }
+  setPlantValue(value: string | number | null): void { this.plantId.set(Number(value) || null); this.page.set(1); }
   setStatus(event: Event): void { this.status.set((event.target as HTMLSelectElement).value); this.page.set(1); }
   setDateFrom(event: Event): void { this.dateFrom.set((event.target as HTMLInputElement).value); this.page.set(1); }
   setDateTo(event: Event): void { this.dateTo.set((event.target as HTMLInputElement).value); this.page.set(1); }

@@ -2,12 +2,14 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import {
-  LucideArrowLeft, LucideArrowUpDown, LucideBox, LucideChevronLeft, LucideChevronRight,
+  LucideArrowUpDown, LucideBox,
   LucideDownload, LucidePencil, LucidePlus, LucideRefreshCw, LucideSearch, LucideTrash2,
 } from '@lucide/angular';
 import { DataStore } from '../../core/data.store';
 import { AppUser, Customer, InventoryItem, Order } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
+import { Modal } from '../../shared/modal/modal';
+import { Pagination } from '../../shared/pagination/pagination';
 
 type EntityKind = 'customers' | 'orders' | 'inventory' | 'users';
 type BusinessItem = Customer | Order | InventoryItem | AppUser;
@@ -21,7 +23,7 @@ const META: Record<EntityKind, { eyebrow: string; title: string; description: st
 
 @Component({
   selector: 'app-business-master',
-  imports: [ReactiveFormsModule, LucideArrowLeft, LucideArrowUpDown, LucideBox, LucideChevronLeft, LucideChevronRight, LucideDownload, LucidePencil, LucidePlus, LucideRefreshCw, LucideSearch, LucideTrash2],
+  imports: [ReactiveFormsModule, Modal, Pagination, LucideArrowUpDown, LucideBox, LucideDownload, LucidePencil, LucidePlus, LucideRefreshCw, LucideSearch, LucideTrash2],
   templateUrl: './business-master.html',
   styleUrls: ['./master-data.scss', './business-master.scss'],
 })
@@ -32,13 +34,14 @@ export class BusinessMaster {
   private readonly fb = inject(FormBuilder);
   readonly kind = this.route.snapshot.data['entity'] as EntityKind;
   readonly meta = META[this.kind];
+  readonly usesModal = this.kind === 'customers' || this.kind === 'users';
   readonly view = signal<'list' | 'edit'>('list');
   readonly editingId = signal<number | null>(null);
   readonly search = signal('');
   readonly statusFilter = signal('All');
   readonly plantScope = signal<number | null>(null);
   readonly page = signal(1);
-  readonly pageSize = 9;
+  readonly pageSize = 10;
   readonly ascending = signal(true);
   readonly saving = signal(false);
   readonly form = this.buildForm();

@@ -1,0 +1,12 @@
+@if (open()) {
+  <div class="modal-layer" [class.inline]="inline()" (mousedown)="backdrop($event)">
+    <section #panel class="modal-dialog" [class.large]="size() === 'large'" [attr.role]="inline() ? null : 'dialog'" [attr.aria-modal]="inline() ? null : 'true'" [attr.aria-labelledby]="'modal-title'" tabindex="-1">
+      <header class="modal-header">
+        <div><span>{{ eyebrow() }}</span><h2 id="modal-title">{{ title() }}</h2>@if (description()) { <p>{{ description() }}</p> }</div>
+        <button type="button" aria-label="Close dialog" (click)="close()"><svg lucideX size="18"></svg></button>
+      </header>
+      <div class="modal-body"><ng-content select="[modal-body]" /></div>
+      <footer class="modal-footer"><ng-content select="[modal-footer]" /></footer>
+    </section>
+  </div>
+}

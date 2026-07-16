@@ -28,6 +28,20 @@ await inspect('corporate-overview', '/dashboard', { width: 1440, height: 900 }, 
   await page.waitForTimeout(500);
 });
 
+await inspect('theme-dark-collapsed', '/dashboard', { width: 1440, height: 900 }, async (page) => {
+  const before = await page.locator('html').getAttribute('data-theme');
+  await page.locator('.theme-toggle').click();
+  await page.waitForTimeout(250);
+  const changed = await page.locator('html').getAttribute('data-theme');
+  check('Theme toggle changes mode', before !== changed, `${before} -> ${changed}`);
+  await page.reload({ waitUntil: 'networkidle' });
+  check('Theme preference persists', await page.locator('html').getAttribute('data-theme') === changed);
+  await page.locator('.collapse-nav').click();
+  await page.waitForTimeout(300);
+  const shellState = await page.evaluate(() => ({ collapsed: document.querySelector('.app-frame')?.classList.contains('sidebar-collapsed'), sidebarWidth: document.querySelector('.sidebar')?.getBoundingClientRect().width ?? 999 }));
+  check('Sidebar collapses smoothly', !!shellState.collapsed && shellState.sidebarWidth < 100, JSON.stringify(shellState));
+});
+
 await inspect('dashboard-desktop', '/dashboard', { width: 1440, height: 900 }, async (page) => {
   await page.selectOption('.filter-bar select[aria-label="Plant"]', '4');
   await page.getByRole('button', { name: /Open PNQ-01 dashboard/i }).click();
@@ -59,17 +73,57 @@ await inspect('scan-mobile', '/scan', { width: 390, height: 844 }, async (page) 
 
 await inspect('customers-desktop', '/master-data/customers', { width: 1366, height: 800 }, async (page) => {
   await page.getByRole('button', { name: 'Add customer' }).click();
-  await page.locator('[formcontrolname="code"]').fill('QAOEM');
-  await page.locator('[formcontrolname="name"]').fill('QA Vehicle Systems');
-  await page.locator('[formcontrolname="gstin"]').fill('06ABCDE1234F1Z5');
-  await page.locator('[formcontrolname="contact"]').fill('Karan Singh');
-  await page.locator('[formcontrolname="phone"]').fill('+91 98100 11122');
-  await page.locator('[formcontrolname="city"]').fill('Gurgaon');
-  await page.getByRole('button', { name: 'Add customer' }).click();
+  const modal = page.locator('app-modal');
+  await modal.getByRole('dialog').waitFor();
+  check('Customer create opens modal', await modal.getByRole('dialog').isVisible());
+  await modal.locator('[formcontrolname="code"]').fill('QAOEM');
+  await modal.locator('[formcontrolname="name"]').fill('QA Vehicle Systems');
+  await modal.locator('[formcontrolname="gstin"]').fill('06ABCDE1234F1Z5');
+  await modal.locator('[formcontrolname="contact"]').fill('Karan Singh');
+  await modal.locator('[formcontrolname="phone"]').fill('+91 98100 11122');
+  await modal.locator('[formcontrolname="city"]').fill('Gurgaon');
+  await modal.getByRole('button', { name: 'Add customer' }).click();
   await page.waitForTimeout(350);
   await page.getByPlaceholder(/Search customers/i).fill('QA Vehicle');
   check('Customer create and redirect', await page.getByText('QA Vehicle Systems', { exact: true }).isVisible());
   check('Shared save toast', await page.getByText('Customer saved', { exact: true }).isVisible());
+});
+
+await inspect('plants-list', '/master-data/plants', { width: 1280, height: 800 }, async (page) => {
+  check('Plants table uses 10 rows', await page.locator('.data-table tbody tr').count() === 10);
+  await page.getByRole('button', { name: 'Add new plant' }).click();
+  await page.getByRole('dialog').waitFor();
+  check('Plant create opens modal', await page.getByRole('dialog').isVisible());
+  await page.keyboard.press('Escape');
+  await page.getByRole('dialog').waitFor({ state: 'detached' });
+  check('Modal closes with Escape', await page.getByRole('dialog').count() === 0);
+  await page.getByRole('button', { name: 'Edit plant' }).first().click();
+  await page.getByRole('heading', { name: 'Edit plant' }).waitFor();
+  check('Plant edit reuses modal', await page.getByRole('heading', { name: 'Edit plant' }).isVisible());
+  await page.locator('app-modal').getByRole('button', { name: 'Cancel' }).click();
+});
+
+await inspect('plant-modal-mobile', '/master-data/plants', { width: 390, height: 844 }, async (page) => {
+  await page.getByRole('button', { name: 'Add new plant' }).click();
+  await page.getByRole('dialog').waitFor();
+  check('Modal fits mobile viewport', await page.getByRole('dialog').evaluate((dialog) => dialog.getBoundingClientRect().width <= innerWidth && dialog.getBoundingClientRect().height <= innerHeight));
+});
+
+await inspect('articles-list', '/master-data/articles', { width: 1280, height: 800 }, async (page) => {
+  check('Articles table uses 10 rows', await page.locator('.data-table tbody tr').count() === 10);
+  await page.getByRole('button', { name: 'Add new article' }).click();
+  await page.getByRole('dialog').waitFor();
+  check('Article create opens modal', await page.getByRole('dialog').isVisible());
+  await page.getByRole('searchbox', { name: 'Search producing plants' }).fill('Pune');
+  check('Article plant selector is searchable', await page.locator('.checkbox-grid .check-card').count() === 2);
+  await page.locator('app-modal').getByRole('button', { name: 'Cancel' }).click();
+});
+
+await inspect('users-list', '/master-data/users', { width: 1280, height: 800 }, async (page) => {
+  await page.getByRole('button', { name: 'Add user' }).click();
+  await page.getByRole('dialog').waitFor();
+  check('User create opens modal', await page.getByRole('dialog').isVisible());
+  await page.locator('app-modal').getByRole('button', { name: 'Cancel' }).click();
 });
 
 await inspect('orders-desktop', '/master-data/orders', { width: 1366, height: 800 }, async (page) => {
@@ -81,17 +135,26 @@ await inspect('orders-desktop', '/master-data/orders', { width: 1366, height: 80
 });
 
 for (const [name, path] of [
-  ['plants-list', '/master-data/plants'], ['articles-list', '/master-data/articles'],
-  ['inventory-list', '/master-data/inventory'], ['users-list', '/master-data/users'],
-  ['sales-ledger', '/sales'],
+  ['inventory-list', '/master-data/inventory'], ['sales-ledger', '/sales'],
 ]) {
-  await inspect(name, path, { width: 1280, height: 800 });
+  await inspect(name, path, { width: 1280, height: 800 }, async (page) => {
+    check(`${name} table uses at most 10 rows`, await page.locator('.data-table tbody tr').count() <= 10);
+    check(`${name} has standard pagination`, await page.locator('app-pagination').count() === 1);
+  });
 }
 
 await inspect('reports', '/reports', { width: 1280, height: 800 }, async (page) => {
+  const plantFilter = page.locator('app-search-select');
+  await plantFilter.getByRole('combobox', { name: 'Filter report by plant' }).click();
+  await plantFilter.getByRole('searchbox', { name: 'Search options' }).fill('Pune');
+  await page.waitForTimeout(100);
+  const filteredOptionCount = await plantFilter.getByRole('option').count();
+  check('Plant filter dropdown is searchable', filteredOptionCount === 2, String(filteredOptionCount));
+  await page.keyboard.press('Escape');
   for (const report of ['Plant-wise Production', 'Article-wise Sales', 'Profitability', 'Customer-wise Sales', 'Inventory Aging']) {
     await page.getByRole('tab', { name: new RegExp(report) }).click();
-    check(`${report} report renders`, await page.locator('.report-table tbody tr').count() > 0);
+    const count = await page.locator('.report-table tbody tr').count();
+    check(`${report} report renders with pagination`, count > 0 && count <= 10 && await page.locator('app-pagination').count() === 1, String(count));
   }
   await page.emulateMedia({ media: 'print' });
   const printLayout = await page.evaluate(() => ({ documentWidth: document.documentElement.scrollWidth, viewportWidth: document.documentElement.clientWidth, reportWidth: document.querySelector('.report-output')?.scrollWidth ?? 0 }));

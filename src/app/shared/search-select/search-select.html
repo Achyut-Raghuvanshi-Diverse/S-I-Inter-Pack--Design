@@ -1,0 +1,11 @@
+<div class="select-label">{{ label() }}</div>
+<button class="select-trigger" type="button" role="combobox" aria-haspopup="listbox" [attr.aria-label]="ariaLabel()" [attr.aria-expanded]="open()" (click)="toggle()" (keydown)="buttonKeydown($event)"><span>{{ selected().label }}</span><svg lucideChevronDown size="14"></svg></button>
+@if (open()) {
+  <div class="select-popover">
+    @if (searchable()) { <label class="select-search"><svg lucideSearch size="14"></svg><input type="search" autofocus aria-label="Search options" placeholder="Search…" [value]="query()" (input)="updateQuery($event)" (keydown)="searchKeydown($event)" /></label> }
+    <div class="option-list" role="listbox" [attr.aria-label]="ariaLabel()">
+      @for (option of filtered(); track option.value; let index = $index) { <button type="button" role="option" [class.active]="index === activeIndex()" [attr.aria-selected]="same(option.value, value())" (mouseenter)="activeIndex.set(index)" (click)="choose(option)"><span><strong>{{ option.label }}</strong>@if (option.description) { <small>{{ option.description }}</small> }</span>@if (same(option.value, value())) { <svg lucideCheck size="15"></svg> }</button> }
+      @empty { <p>No matching options</p> }
+    </div>
+  </div>
+}

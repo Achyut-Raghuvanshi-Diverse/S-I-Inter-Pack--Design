@@ -11,9 +11,13 @@ import {
   LucideHandshake,
   LucideLayoutDashboard,
   LucideMenu,
+  LucideMoon,
+  LucidePanelLeftClose,
+  LucidePanelLeftOpen,
   LucideScanLine,
   LucideSearch,
   LucideShoppingCart,
+  LucideSun,
   LucideTruck,
   LucideUserCircle,
   LucideUsers,
@@ -26,14 +30,15 @@ import { AuthStore } from '../core/auth.store';
 import { DataStore } from '../core/data.store';
 import { UserRole } from '../core/models';
 import { ToastService } from '../core/toast.service';
+import { ThemeStore } from '../core/theme.store';
 import { ToastOutlet } from './toast-outlet';
 
 @Component({
   selector: 'app-shell',
   imports: [
     RouterOutlet, RouterLink, RouterLinkActive, ToastOutlet, LucideBell, LucideBoxes, LucideChevronDown,
-    LucideDatabase, LucideFactory, LucideFileChartColumn, LucideHandshake, LucideLayoutDashboard, LucideMenu,
-    LucideScanLine, LucideSearch, LucideShoppingCart, LucideTruck, LucideUserCircle, LucideUsers, LucideWarehouse, LucideWifi, LucideWifiOff, LucideX,
+    LucideDatabase, LucideFactory, LucideFileChartColumn, LucideHandshake, LucideLayoutDashboard, LucideMenu, LucideMoon,
+    LucidePanelLeftClose, LucidePanelLeftOpen, LucideScanLine, LucideSearch, LucideShoppingCart, LucideSun, LucideTruck, LucideUserCircle, LucideUsers, LucideWarehouse, LucideWifi, LucideWifiOff, LucideX,
   ],
   templateUrl: './app-shell.html',
   styleUrl: './app-shell.scss',
@@ -43,7 +48,9 @@ export class AppShell {
   readonly data = inject(DataStore);
   readonly router = inject(Router);
   readonly toast = inject(ToastService);
+  readonly theme = inject(ThemeStore);
   readonly mobileNavOpen = signal(false);
+  readonly sidebarCollapsed = signal(false);
   readonly notificationsOpen = signal(false);
   private readonly navigation = toSignal(this.router.events, { initialValue: null });
   readonly today = new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).format(new Date());
@@ -77,6 +84,8 @@ export class AppShell {
   closeNav(): void {
     this.mobileNavOpen.set(false);
   }
+
+  toggleSidebar(): void { this.sidebarCollapsed.update((value) => !value); }
 
   performSearch(event: Event): void {
     const query = (event.target as HTMLInputElement).value.trim();

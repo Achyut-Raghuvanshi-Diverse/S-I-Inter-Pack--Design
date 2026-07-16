@@ -47,4 +47,10 @@
 .check-card:has(input:checked) { background: var(--violet-50); border-color: var(--violet-400); }
 .form-error-summary { border-radius: 7px; }
 .master-toolbar .active-filter { height: 34px; border-radius: 7px; }
+.modal-action-row { width: 100%; display: flex; justify-content: flex-end; gap: 8px; }
+.modal-edit-form { padding: 17px 18px 3px; }
+.modal-edit-form .form-section:last-child { margin-bottom: 12px; }
+.section-title-row { margin-bottom: 10px; padding-bottom: 7px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--border); }.section-title-row h4 { margin: 0; padding: 0; border: 0; }
+.plant-search { width: 220px; }.plant-search input { width: 100%; height: 32px; padding: 0 9px 0 32px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface-card); color: var(--ink-800); outline: 0; }.plant-search input:focus { border-color: var(--violet-500); box-shadow: var(--focus-ring); }
 @media (max-width: 720px) { .edit-form { padding: 18px; } .form-actions { margin-inline: -18px; margin-bottom: -18px; } }
+@media (max-width: 560px) { .modal-action-row .btn { flex: 1; }.section-title-row { align-items: stretch; flex-direction: column; }.plant-search { width: 100%; }.checkbox-grid { grid-template-columns: 1fr; } }

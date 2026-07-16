@@ -2,10 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, Validators, NonNullableFormBuilder } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import {
-  LucideArrowLeft,
   LucideArrowUpDown,
-  LucideChevronLeft,
-  LucideChevronRight,
   LucideDownload,
   LucidePencil,
   LucidePlus,
@@ -15,10 +12,12 @@ import {
 import { DataStore } from '../../core/data.store';
 import { Plant, PlantStatus } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
+import { Modal } from '../../shared/modal/modal';
+import { Pagination } from '../../shared/pagination/pagination';
 
 @Component({
   selector: 'app-plants',
-  imports: [ReactiveFormsModule, LucideArrowLeft, LucideArrowUpDown, LucideChevronLeft, LucideChevronRight, LucideDownload, LucidePencil, LucidePlus, LucideSearch, LucideTrash2],
+  imports: [ReactiveFormsModule, Modal, Pagination, LucideArrowUpDown, LucideDownload, LucidePencil, LucidePlus, LucideSearch, LucideTrash2],
   templateUrl: './plants.html',
   styleUrl: './master-data.scss',
 })
@@ -33,7 +32,7 @@ export class Plants {
   readonly sortKey = signal<keyof Plant>('name');
   readonly ascending = signal(true);
   readonly page = signal(1);
-  readonly pageSize = 8;
+  readonly pageSize = 10;
   readonly selected = signal<number[]>([]);
   readonly editingId = signal<number | null>(null);
   readonly form = this.fb.group({

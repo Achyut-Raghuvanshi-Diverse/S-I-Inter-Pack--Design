@@ -1,0 +1,8 @@
+<div class="table-footer pagination-shell">
+  <span>Showing <b>{{ from() }}–{{ to() }}</b> of <b>{{ total() }}</b> {{ noun() }}</span>
+  <nav class="pagination" aria-label="Table pagination">
+    <button type="button" aria-label="Previous page" [disabled]="page() === 1" (click)="go(page() - 1)"><svg lucideChevronLeft size="14"></svg></button>
+    @for (number of pageNumbers(); track number) { <button type="button" [class.active]="page() === number" [attr.aria-current]="page() === number ? 'page' : null" [attr.aria-label]="'Page ' + number" (click)="go(number)">{{ number }}</button> }
+    <button type="button" aria-label="Next page" [disabled]="page() === pages()" (click)="go(page() + 1)"><svg lucideChevronRight size="14"></svg></button>
+  </nav>
+</div>
