@@ -28,6 +28,8 @@ type ReportType = 'Plant-wise Production' | 'Article-wise Sales' | 'Profitabilit
 })
 export class Reports {
   readonly data = inject(DataStore);
+  readonly historyStart = '2020-01-01';
+  readonly historyEnd = new Date().toISOString().slice(0, 10);
   readonly toast = inject(ToastService);
   readonly selectedReport = signal<ReportType>('Plant-wise Production');
   readonly page = signal(1);

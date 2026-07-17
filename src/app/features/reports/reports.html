@@ -18,7 +18,7 @@
     <div class="report-actions"><button class="btn btn-secondary print-action" type="button" (click)="printReport()"><svg lucidePrinter size="15"></svg><span>Print / PDF</span></button><button class="btn btn-primary" type="button" (click)="exportCsv()"><svg lucideDownload size="15"></svg><span>Export CSV</span></button></div>
   </div>
   <div class="report-filters filter-toolbar">
-    <label class="date-filter"><span>Reporting period</span><div><svg lucideCalendarDays size="14"></svg><input aria-label="Start date" type="date" value="2026-07-01" /><i>to</i><input aria-label="End date" type="date" value="2026-07-16" /></div></label>
+    <label class="date-filter"><span>Reporting period</span><div><svg lucideCalendarDays size="14"></svg><input aria-label="Start date" type="date" [value]="historyStart" min="2020-01-01" [max]="historyEnd" /><i>to</i><input aria-label="End date" type="date" [value]="historyEnd" min="2020-01-01" [max]="historyEnd" /></div></label>
     <app-search-select label="Plant scope" ariaLabel="Filter report by plant" [options]="plantOptions()" [value]="plantId()" (valueChange)="selectPlantValue($event)" />
     <app-search-select label="Product category" ariaLabel="Filter report by product category" [searchable]="false" [options]="categoryOptions" [value]="productCategory()" (valueChange)="selectCategoryValue($event)" />
     <button class="btn btn-primary run-report" type="button" (click)="runReport()"><svg lucideRefreshCw size="14"></svg>Run report</button>

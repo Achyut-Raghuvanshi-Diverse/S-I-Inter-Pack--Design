@@ -30,8 +30,8 @@ export class Sales {
   readonly plantOptions = computed(() => [{ value: null, label: 'All plants', description: 'All dispatch locations' }, ...this.data.plants().map((plant) => ({ value: plant.id, label: `${plant.code} — ${plant.name}`, description: `${plant.location}, ${plant.state}` }))]);
   readonly status = signal('All statuses');
   readonly statusOptions = ['All statuses', 'Delivered', 'In transit', 'Ready'].map((value) => ({ value, label: value }));
-  readonly dateFrom = signal('2026-07-01');
-  readonly dateTo = signal('2026-07-16');
+  readonly dateFrom = signal('2020-01-01');
+  readonly dateTo = signal(new Date().toISOString().slice(0, 10));
   readonly sortKey = signal<keyof LedgerEntry>('date');
   readonly ascending = signal(false);
   readonly page = signal(1);

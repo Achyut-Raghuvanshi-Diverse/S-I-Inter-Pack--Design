@@ -32,9 +32,11 @@ export class BarcodeRecords {
   readonly plantId = signal<number | null>(null);
   readonly source = signal<'All methods' | ScanSource>('All methods');
   readonly syncStatus = signal<'All statuses' | ScanRecord['syncStatus']>('All statuses');
+  readonly year = signal('All years');
   readonly plantOptions = computed(() => [{ value: null, label: 'All plants', description: 'Every plant location' }, ...this.data.plants().map((plant) => ({ value: plant.id, label: `${plant.code} — ${plant.name}`, description: `${plant.location}, ${plant.state}` }))]);
   readonly sourceOptions = ['All methods', 'Camera', 'Manual'].map((value) => ({ value, label: value }));
   readonly syncOptions = ['All statuses', 'Synced', 'Pending'].map((value) => ({ value, label: value }));
+  readonly yearOptions = [{ value: 'All years', label: 'All years', description: 'January 2020 to today' }, ...Array.from({ length: new Date().getFullYear() - 2019 }, (_, index) => { const value = String(new Date().getFullYear() - index); return { value, label: value }; })];
   readonly page = signal(1);
   readonly pageSize = 10;
 
@@ -49,7 +51,8 @@ export class BarcodeRecords {
       const matchesPlant = this.plantLocked() || !this.plantId() || scan.plantId === this.plantId();
       const matchesSource = this.source() === 'All methods' || scan.source === this.source();
       const matchesStatus = this.syncStatus() === 'All statuses' || scan.syncStatus === this.syncStatus();
-      return matchesQuery && matchesPlant && matchesSource && matchesStatus;
+      const matchesYear = this.year() === 'All years' || String(new Date(scan.timestamp).getFullYear()) === this.year();
+      return matchesQuery && matchesPlant && matchesSource && matchesStatus && matchesYear;
     });
   });
   readonly paged = computed(() => this.filtered().slice(
@@ -64,6 +67,7 @@ export class BarcodeRecords {
   setPlantValue(value: string | number | null): void { this.plantId.set(Number(value) || null); this.page.set(1); }
   setSourceValue(value: string | number | null): void { this.source.set(String(value) as 'All methods' | ScanSource); this.page.set(1); }
   setStatusValue(value: string | number | null): void { this.syncStatus.set(String(value) as 'All statuses' | ScanRecord['syncStatus']); this.page.set(1); }
+  setYearValue(value: string | number | null): void { this.year.set(String(value)); this.page.set(1); }
   plantCode(id: number): string { return this.data.plants().find((plant) => plant.id === id)?.code ?? '—'; }
   date(value: Date): string { return new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value)); }
   time(value: Date): string { return new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date(value)); }

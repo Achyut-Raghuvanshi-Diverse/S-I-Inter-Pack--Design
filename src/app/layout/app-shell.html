@@ -56,7 +56,7 @@
         <div class="utility-cluster">
           <button class="connection" type="button" [class.offline]="!data.online()" (click)="toggleConnection()" [attr.aria-label]="data.online() ? 'Go offline for demo' : 'Reconnect'">@if (data.online()) { <i></i><svg lucideWifi size="15"></svg><span>Live</span> } @else { <i></i><svg lucideWifiOff size="15"></svg><span>Offline</span> }</button>
           <button class="icon-btn theme-toggle" type="button" [attr.aria-label]="theme.mode() === 'light' ? 'Switch to dark theme' : 'Switch to light theme'" [attr.title]="theme.mode() === 'light' ? 'Dark theme' : 'Light theme'" (click)="theme.toggle()">@if (theme.mode() === 'light') { <svg lucideMoon size="18"></svg> } @else { <svg lucideSun size="18"></svg> }</button>
-          <button class="icon-btn notification" type="button" aria-label="Notifications" [attr.aria-expanded]="notificationsOpen()" (click)="toggleNotifications()"><svg lucideBell size="18"></svg><span></span></button>
+          <button class="icon-btn notification" type="button" aria-label="Notifications" [attr.aria-expanded]="notificationsOpen()" (click)="toggleNotifications()"><svg lucideBell size="18"></svg>@if (unreadNotifications()) { <span class="notification-count">{{ unreadNotifications() }}</span> }</button>
         </div>
         <div class="user-control">
           <button class="user-trigger" type="button" role="combobox" aria-haspopup="listbox" aria-label="Switch demo role" [attr.aria-expanded]="roleMenuOpen()" (click)="toggleRoleMenu()"><div class="avatar-wrap"><div class="avatar">{{ auth.initials() }}</div><i></i></div><div class="user-copy"><strong>{{ auth.userName() }}</strong><span>{{ auth.role() }}</span></div><span class="user-chevron"><svg lucideChevronDown size="14"></svg></span></button>
@@ -68,7 +68,17 @@
           }
         </div>
       </div>
-      @if (notificationsOpen()) { <aside class="notification-panel"><div><strong>Operations alerts</strong><button type="button" aria-label="Close notifications" (click)="notificationsOpen.set(false)"><svg lucideX size="15"></svg></button></div><p><span class="alert-red"></span><b>{{ data.pendingScans() }} barcode record pending</b><small>Reconnect the plant device to complete sync.</small></p><p><span class="alert-amber"></span><b>3 stock items below reorder level</b><small>Purchasing action may be required.</small></p><p><span class="alert-green"></span><b>Barcode records available</b><small>Corporate and plant views are current.</small></p></aside> }
+      @if (notificationsOpen()) {
+        <aside class="notification-panel" aria-label="Notification centre">
+          <header class="notification-head"><div class="notification-title"><span><svg lucideBell size="17"></svg></span><div><strong>Notification centre</strong><small>{{ unreadNotifications() ? unreadNotifications() + ' updates need your attention' : 'You’re all caught up' }}</small></div></div><button type="button" aria-label="Close notifications" (click)="notificationsOpen.set(false)"><svg lucideX size="16"></svg></button></header>
+          <div class="notification-list">
+            <button class="notification-card critical" type="button" (click)="openNotification('/barcode-records')"><span class="notice-icon"><svg lucideWifiOff size="18"></svg></span><span class="notice-copy"><span><b>Barcode sync status</b><time>Just now</time></span><strong>{{ data.pendingScans().toLocaleString('en-IN') }} records waiting to sync</strong><small>Review pending plant-device records and connection status.</small></span><svg class="notice-arrow" lucideArrowRight size="16"></svg></button>
+            <button class="notification-card warning" type="button" (click)="openNotification('/master-data/inventory')"><span class="notice-icon"><svg lucideWarehouse size="18"></svg></span><span class="notice-copy"><span><b>Inventory attention</b><time>5 min ago</time></span><strong>{{ data.lowStockItems().toLocaleString('en-IN') }} items below reorder level</strong><small>Stock records from 2020 to today are ready for review.</small></span><svg class="notice-arrow" lucideArrowRight size="16"></svg></button>
+            <button class="notification-card success" type="button" (click)="openNotification('/barcode-records')"><span class="notice-icon"><svg lucideDatabase size="18"></svg></span><span class="notice-copy"><span><b>Historical data ready</b><time>Today</time></span><strong>{{ data.totalRecords().toLocaleString('en-IN') }} records available</strong><small>Application tables now include history from January 2020.</small></span><svg class="notice-arrow" lucideArrowRight size="16"></svg></button>
+          </div>
+          <footer class="notification-footer"><span>Updated live</span><button type="button" [disabled]="!unreadNotifications()" (click)="markNotificationsRead()"><svg lucideCheck size="14"></svg> Mark all as read</button></footer>
+        </aside>
+      }
     </header>
     <main class="page-content">
       <router-outlet />

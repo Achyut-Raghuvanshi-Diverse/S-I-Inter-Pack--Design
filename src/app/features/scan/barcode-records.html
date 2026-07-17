@@ -26,6 +26,7 @@
     }
     <app-search-select label="Entry method" ariaLabel="Filter barcode records by entry method" [searchable]="false" [options]="sourceOptions" [value]="source()" (valueChange)="setSourceValue($event)" />
     <app-search-select label="Sync" ariaLabel="Filter barcode records by sync status" [searchable]="false" [options]="syncOptions" [value]="syncStatus()" (valueChange)="setStatusValue($event)" />
+    <app-search-select label="Year" ariaLabel="Filter barcode records by year" [searchable]="false" [options]="yearOptions" [value]="year()" (valueChange)="setYearValue($event)" />
     <span class="result-count">{{ filtered().length }} records</span>
   </div>
 

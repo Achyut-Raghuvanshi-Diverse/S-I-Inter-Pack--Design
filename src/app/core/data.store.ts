@@ -19,6 +19,8 @@ export class DataStore {
   readonly dataError = signal('');
 
   readonly pendingScans = computed(() => this.scans().filter((scan) => scan.syncStatus === 'Pending').length);
+  readonly lowStockItems = computed(() => this.inventory().filter((item) => item.quantity < item.reorderLevel).length);
+  readonly totalRecords = computed(() => this.plants().length + this.articles().length + this.scans().length + this.ledger().length + this.customers().length + this.orders().length + this.inventory().length + this.users().length);
   readonly totalOutput = computed(() => this.plants().reduce((sum, plant) => sum + plant.output, 0));
   readonly activePlants = computed(() => this.plants().length);
 

@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import {
   LucideBell,
+  LucideArrowRight,
   LucideBoxes,
   LucideFactory,
   LucideChevronDown,
@@ -37,7 +38,7 @@ import { ToastOutlet } from './toast-outlet';
 @Component({
   selector: 'app-shell',
   imports: [
-    RouterOutlet, RouterLink, RouterLinkActive, ToastOutlet, LucideBell, LucideBoxes, LucideCheck, LucideChevronDown,
+    RouterOutlet, RouterLink, RouterLinkActive, ToastOutlet, LucideArrowRight, LucideBell, LucideBoxes, LucideCheck, LucideChevronDown,
     LucideClipboardList, LucideDatabase, LucideFactory, LucideFileChartColumn, LucideHandshake, LucideLayoutDashboard, LucideMenu, LucideMoon,
     LucidePanelLeftClose, LucidePanelLeftOpen, LucideScanLine, LucideSearch, LucideShoppingCart, LucideSun, LucideTruck, LucideUsers, LucideWarehouse, LucideWifi, LucideWifiOff, LucideX,
   ],
@@ -53,6 +54,7 @@ export class AppShell {
   readonly mobileNavOpen = signal(false);
   readonly sidebarCollapsed = signal(false);
   readonly notificationsOpen = signal(false);
+  readonly notificationsRead = signal(false);
   readonly roleMenuOpen = signal(false);
   readonly roleOptions: { role: UserRole; description: string; token: string }[] = [
     { role: 'Corporate Admin', description: 'All plants, records and settings', token: 'CA' },
@@ -61,6 +63,7 @@ export class AppShell {
   ];
   private readonly navigation = toSignal(this.router.events, { initialValue: null });
   readonly today = new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).format(new Date());
+  readonly unreadNotifications = computed(() => this.notificationsRead() ? 0 : 3);
   readonly pageTitle = computed(() => {
     this.navigation();
     const path = this.router.url;
@@ -106,7 +109,9 @@ export class AppShell {
   }
 
   openSupport(): void { this.toast.info('Plant systems support', 'Call extension 224 or email ops.support@siinterpack.in.'); }
-  toggleNotifications(): void { this.notificationsOpen.update((value) => !value); }
+  toggleNotifications(): void { this.notificationsOpen.update((value) => !value); this.roleMenuOpen.set(false); }
+  openNotification(path: string): void { this.notificationsOpen.set(false); this.router.navigateByUrl(path); }
+  markNotificationsRead(): void { this.notificationsRead.set(true); this.toast.success('Notifications cleared', 'All current updates were marked as read.'); }
   signOut(): void {
     this.auth.setRole('Corporate Admin');
     this.router.navigateByUrl('/dashboard');
@@ -115,7 +120,9 @@ export class AppShell {
 
   @HostListener('document:mousedown', ['$event'])
   closeRoleMenu(event: MouseEvent): void {
-    if (!(event.target as HTMLElement).closest('.user-control')) this.roleMenuOpen.set(false);
+    const target = event.target as HTMLElement;
+    if (!target.closest('.user-control')) this.roleMenuOpen.set(false);
+    if (!target.closest('.notification') && !target.closest('.notification-panel')) this.notificationsOpen.set(false);
   }
 
   @HostListener('document:keydown.escape')

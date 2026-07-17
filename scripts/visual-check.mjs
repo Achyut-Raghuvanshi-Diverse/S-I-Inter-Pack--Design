@@ -55,6 +55,26 @@ await inspect('role-menu-desktop', '/dashboard', { width: 1280, height: 800 }, a
   check('Role switcher uses custom menu', await page.locator('.role-menu').isVisible() && await page.getByRole('option', { name: /Plant Operator/i }).isVisible());
 });
 
+await inspect('notifications-desktop', '/dashboard', { width: 1280, height: 800 }, async (page) => {
+  await page.getByRole('button', { name: 'Notifications' }).click();
+  const panel = page.getByLabel('Notification centre');
+  await panel.waitFor();
+  const copy = await panel.innerText();
+  check('Notification centre uses rich alert cards', await panel.locator('.notification-card').count() === 3);
+  check('Notification centre reflects live app totals', copy.includes('39,065 records available') && copy.includes('403 items below reorder level'), copy);
+});
+
+await inspect('notifications-mobile', '/dashboard', { width: 390, height: 844 }, async (page) => {
+  await page.getByRole('button', { name: 'Notifications' }).click();
+  const panel = page.getByLabel('Notification centre');
+  await panel.waitFor();
+  const box = await panel.boundingBox();
+  check('Notification centre fits mobile viewport', !!box && box.x >= 0 && box.y >= 0 && box.x + box.width <= 390 && box.y + box.height <= 844, JSON.stringify(box));
+  await panel.getByRole('button', { name: 'Mark all as read' }).click();
+  await page.waitForTimeout(75);
+  check('Notifications can be marked as read', await page.locator('.notification-count').count() === 0 && (await panel.innerText()).toLowerCase().includes('all caught up'));
+});
+
 await inspect('dropdown-menu-desktop', '/barcode-records', { width: 1280, height: 800 }, async (page) => {
   await page.getByRole('combobox', { name: 'Filter barcode records by plant' }).click();
   await page.getByRole('searchbox', { name: 'Search options' }).fill('Pune');
@@ -94,8 +114,13 @@ await inspect('scan-mobile', '/scan', { width: 390, height: 844 }, async (page) 
 
 await inspect('barcode-records-desktop', '/barcode-records', { width: 1280, height: 800 }, async (page) => {
   check('Corporate sees barcode records from all plants', await page.locator('.data-table tbody tr').count() === 10);
+  check('Barcode history contains 15,000 records', (await page.locator('app-pagination').innerText()).includes('15000'));
   await chooseMenuOption(page, 'Filter barcode records by plant', 'Gurgaon Plant 1');
-  check('Corporate can filter barcode records by plant', await page.locator('.data-table tbody tr').count() === 3);
+  check('Corporate can filter barcode records by plant', await page.locator('.data-table tbody tr').count() === 10);
+  await page.getByRole('combobox', { name: 'Filter barcode records by year' }).click();
+  await page.getByRole('option', { name: '2020', exact: true }).click();
+  await page.waitForTimeout(75);
+  check('Barcode history is discoverable from 2020', await page.locator('.data-table tbody tr').count() === 10);
   check('Barcode records use standard pagination', await page.locator('app-pagination').count() === 1);
 });
 
@@ -162,6 +187,7 @@ await inspect('users-list', '/master-data/users', { width: 1280, height: 800 }, 
 });
 
 await inspect('orders-desktop', '/master-data/orders', { width: 1366, height: 800 }, async (page) => {
+  check('Orders contain 8,000 historical records', (await page.locator('app-pagination').innerText()).includes('8000'));
   await page.getByRole('button', { name: 'Open order' }).first().click();
   await page.locator('app-search-select[formcontrolname="status"]').getByRole('combobox').click();
   await page.getByRole('option', { name: /^In Production$/i }).click();
@@ -176,6 +202,8 @@ for (const [name, path] of [
   await inspect(name, path, { width: 1280, height: 800 }, async (page) => {
     check(`${name} table uses at most 10 rows`, await page.locator('.data-table tbody tr').count() <= 10);
     check(`${name} has standard pagination`, await page.locator('app-pagination').count() === 1);
+    const expectedTotal = name === 'inventory-list' ? '2500' : '12000';
+    check(`${name} exposes the full historical dataset`, (await page.locator('app-pagination').innerText()).includes(expectedTotal), expectedTotal);
   });
 }
 
