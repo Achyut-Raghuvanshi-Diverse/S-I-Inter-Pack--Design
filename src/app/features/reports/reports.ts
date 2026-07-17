@@ -36,6 +36,7 @@ export class Reports {
   readonly plantId = signal<number | null>(null);
   readonly productCategory = signal('All product categories');
   readonly plantOptions = computed(() => [{ value: null, label: 'All 15 plants', description: 'Enterprise-wide scope' }, ...this.data.plants().map((plant) => ({ value: plant.id, label: `${plant.code} — ${plant.name}`, description: `${plant.location}, ${plant.state}` }))]);
+  readonly categoryOptions = ['All product categories', 'Seat covers', 'Interior sets'].map((value) => ({ value, label: value }));
   readonly reportTypes: { name: ReportType; description: string; icon: string; tag: string }[] = [
     { name: 'Plant-wise Production', description: 'Target, actual output, rejection and utilization by facility.', icon: 'factory', tag: 'Production' },
     { name: 'Article-wise Sales', description: 'Sales volume and realization by article and vehicle model.', icon: 'boxes', tag: 'Sales' },
@@ -145,8 +146,7 @@ export class Reports {
 
   selectReport(report: ReportType): void { this.selectedReport.set(report); this.page.set(1); }
   selectPlantValue(value: string | number | null): void { this.plantId.set(Number(value) || null); this.page.set(1); }
-  selectPlant(event: Event): void { this.plantId.set(Number((event.target as HTMLSelectElement).value) || null); this.page.set(1); }
-  selectCategory(event: Event): void { this.productCategory.set((event.target as HTMLSelectElement).value); this.page.set(1); }
+  selectCategoryValue(value: string | number | null): void { this.productCategory.set(String(value)); this.page.set(1); }
   variance(row: { target: number; actual: number }): number { return row.actual - row.target; }
   utilization(plantId: number): number { const plant = this.data.plants().find((item) => item.id === plantId); return plant ? plant.output / plant.capacity * 100 : 0; }
   currency(value: number): string { return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value); }

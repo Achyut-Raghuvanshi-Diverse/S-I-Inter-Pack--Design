@@ -11,6 +11,7 @@
         <p class="nav-label">My plant workspace</p>
         <a routerLink="/plant/dashboard" routerLinkActive="active" (click)="closeNav()"><svg lucideFactory size="19"></svg><span>{{ data.plantName(auth.assignedPlantId()) }} overview</span></a>
         <a routerLink="/scan" routerLinkActive="active" (click)="closeNav()"><svg lucideScanLine size="19"></svg><span>Scan & track</span>@if (data.pendingScans()) { <em>{{ data.pendingScans() }}</em> }</a>
+        <a routerLink="/barcode-records" routerLinkActive="active" (click)="closeNav()"><svg lucideClipboardList size="19"></svg><span>Barcode records</span></a>
       } @else if (auth.role() === 'Sales') {
         <p class="nav-label">Sales workspace</p>
         <a routerLink="/master-data/orders" routerLinkActive="active" (click)="closeNav()"><svg lucideShoppingCart size="19"></svg><span>Purchase orders</span></a>
@@ -25,6 +26,7 @@
         <a routerLink="/dashboard" routerLinkActive="active" (click)="closeNav()"><svg lucideLayoutDashboard size="19"></svg><span>Corporate dashboard</span></a>
         <p class="nav-label">Plant operations</p>
         <a routerLink="/scan" routerLinkActive="active" (click)="closeNav()"><svg lucideScanLine size="19"></svg><span>Scan & track</span>@if (data.pendingScans()) { <em>{{ data.pendingScans() }}</em> }</a>
+        <a routerLink="/barcode-records" routerLinkActive="active" (click)="closeNav()"><svg lucideClipboardList size="19"></svg><span>Barcode records</span></a>
         <a routerLink="/master-data/inventory" routerLinkActive="active" (click)="closeNav()"><svg lucideWarehouse size="19"></svg><span>Inventory</span></a>
         <p class="nav-label">Master data</p>
         <a routerLink="/master-data/plants" routerLinkActive="active" (click)="closeNav()"><svg lucideDatabase size="19"></svg><span>Plants</span></a>
@@ -56,9 +58,17 @@
           <button class="icon-btn theme-toggle" type="button" [attr.aria-label]="theme.mode() === 'light' ? 'Switch to dark theme' : 'Switch to light theme'" [attr.title]="theme.mode() === 'light' ? 'Dark theme' : 'Light theme'" (click)="theme.toggle()">@if (theme.mode() === 'light') { <svg lucideMoon size="18"></svg> } @else { <svg lucideSun size="18"></svg> }</button>
           <button class="icon-btn notification" type="button" aria-label="Notifications" [attr.aria-expanded]="notificationsOpen()" (click)="toggleNotifications()"><svg lucideBell size="18"></svg><span></span></button>
         </div>
-        <div class="user-control"><div class="avatar-wrap"><div class="avatar">{{ auth.initials() }}</div><i></i></div><div class="user-copy"><strong>{{ auth.userName() }}</strong><span>{{ auth.role() }}</span></div><select aria-label="Switch demo role" [value]="auth.role()" (change)="setRole($event)"><option>Corporate Admin</option><option>Plant Operator</option><option>Sales</option></select><svg class="user-chevron" lucideChevronDown size="14"></svg></div>
+        <div class="user-control">
+          <button class="user-trigger" type="button" role="combobox" aria-haspopup="listbox" aria-label="Switch demo role" [attr.aria-expanded]="roleMenuOpen()" (click)="toggleRoleMenu()"><div class="avatar-wrap"><div class="avatar">{{ auth.initials() }}</div><i></i></div><div class="user-copy"><strong>{{ auth.userName() }}</strong><span>{{ auth.role() }}</span></div><span class="user-chevron"><svg lucideChevronDown size="14"></svg></span></button>
+          @if (roleMenuOpen()) {
+            <div class="role-menu" role="listbox" aria-label="Switch demo role">
+              <div class="role-menu-head"><strong>Switch workspace</strong><span>Choose the view you want to preview</span></div>
+              <div class="role-options">@for (option of roleOptions; track option.role) { <button type="button" role="option" [class.selected]="auth.role() === option.role" [attr.aria-selected]="auth.role() === option.role" (click)="chooseRole(option.role)"><span class="role-token">{{ option.token }}</span><span class="role-copy"><strong>{{ option.role }}</strong><small>{{ option.description }}</small></span>@if (auth.role() === option.role) { <span class="role-check"><svg lucideCheck size="14"></svg></span> }</button> }</div>
+            </div>
+          }
+        </div>
       </div>
-      @if (notificationsOpen()) { <aside class="notification-panel"><div><strong>Operations alerts</strong><button type="button" aria-label="Close notifications" (click)="notificationsOpen.set(false)"><svg lucideX size="15"></svg></button></div><p><span class="alert-red"></span><b>4 plants behind target</b><small>Review today’s production position.</small></p><p><span class="alert-amber"></span><b>3 stock items below reorder level</b><small>Purchasing action may be required.</small></p><p><span class="alert-green"></span><b>Dispatch sync complete</b><small>24 ledger records are current.</small></p></aside> }
+      @if (notificationsOpen()) { <aside class="notification-panel"><div><strong>Operations alerts</strong><button type="button" aria-label="Close notifications" (click)="notificationsOpen.set(false)"><svg lucideX size="15"></svg></button></div><p><span class="alert-red"></span><b>{{ data.pendingScans() }} barcode record pending</b><small>Reconnect the plant device to complete sync.</small></p><p><span class="alert-amber"></span><b>3 stock items below reorder level</b><small>Purchasing action may be required.</small></p><p><span class="alert-green"></span><b>Barcode records available</b><small>Corporate and plant views are current.</small></p></aside> }
     </header>
     <main class="page-content">
       <router-outlet />
@@ -67,8 +77,8 @@
     </main>
   </section>
 
-  @if (auth.role() === 'Plant Operator' && (router.url.includes('/scan') || router.url.includes('/plant/dashboard'))) {
-    <nav class="operator-nav" aria-label="Operator navigation"><a routerLink="/plant/dashboard" routerLinkActive="active"><svg lucideFactory size="22"></svg><span>My Plant</span></a><a routerLink="/scan" routerLinkActive="active"><svg lucideScanLine size="22"></svg><span>Scan</span></a><button type="button" (click)="openSupport()"><svg lucideUserCircle size="22"></svg><span>Profile</span></button></nav>
+  @if (auth.role() === 'Plant Operator' && (router.url.includes('/scan') || router.url.includes('/barcode-records') || router.url.includes('/plant/dashboard'))) {
+    <nav class="operator-nav" aria-label="Operator navigation"><a routerLink="/plant/dashboard" routerLinkActive="active"><svg lucideFactory size="22"></svg><span>My Plant</span></a><a routerLink="/scan" routerLinkActive="active"><svg lucideScanLine size="22"></svg><span>Scan</span></a><a routerLink="/barcode-records" routerLinkActive="active"><svg lucideClipboardList size="22"></svg><span>Records</span></a></nav>
   }
   <app-toast-outlet />
 </div>

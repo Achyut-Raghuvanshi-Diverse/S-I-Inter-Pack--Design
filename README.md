@@ -1,6 +1,6 @@
 # SI Inter Pack Operations Control
 
-Angular 20 prototype for plant-floor tracking, corporate intelligence, master data, dispatch and reporting across SI Inter Pack's 15-plant network.
+Angular 20 prototype for barcode tracking, corporate visibility, master data, dispatch and reporting across SI Inter Pack's 15-plant network.
 
 ## Run locally
 
@@ -13,9 +13,10 @@ Open `http://localhost:4200`. Use the role selector in the top-right user contro
 
 ## Included workflows
 
-- Corporate KPI dashboard with ApexCharts and plant drill-down
-- Plant-scoped operator dashboard with production, stage funnel, capacity, trend and recent activity
-- Camera barcode/QR scan flow with manual fallback, validation, offline queue, retry and undo
+- Corporate barcode dashboard with scan trends, plant drill-down and sync visibility
+- Plant-scoped operator dashboard with barcode activity, entry methods and recent records
+- Three-step Plant → Scan → Confirm barcode flow with locked operator plant, manual fallback, read-only confirmation and offline sync
+- Searchable Barcode Records screen showing all plants for Corporate and only the assigned plant for Plant Operators
 - Full CRUD for plants, articles, customers, purchase orders, inventory and users/roles
 - Filter-reactive sales and dispatch ledger with CSV export
 - Reports catalogue with a working Plant-wise Production report, CSV and print/PDF output

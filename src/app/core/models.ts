@@ -1,7 +1,7 @@
 export type PlantStatus = 'On target' | 'Behind' | 'Over capacity';
 export type VehicleSegment = 'Passenger' | 'Commercial' | 'Utility';
 export type UserRole = 'Corporate Admin' | 'Plant Operator' | 'Sales';
-export type ScanStage = 'Raw Material In' | 'WIP' | 'QC Pass' | 'Packed' | 'Dispatched';
+export type ScanSource = 'Camera' | 'Manual';
 
 export interface Plant {
   id: number;
@@ -34,12 +34,11 @@ export interface ScanRecord {
   id: number;
   timestamp: Date;
   plantId: number;
-  stage: ScanStage;
   articleId: number;
   articleCode: string;
   articleName: string;
-  quantity: number;
-  batch: string;
+  barcode: string;
+  source: ScanSource;
   syncStatus: 'Synced' | 'Pending';
 }
 

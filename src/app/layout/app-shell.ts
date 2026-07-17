@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import {
@@ -6,6 +6,8 @@ import {
   LucideBoxes,
   LucideFactory,
   LucideChevronDown,
+  LucideCheck,
+  LucideClipboardList,
   LucideDatabase,
   LucideFileChartColumn,
   LucideHandshake,
@@ -19,7 +21,6 @@ import {
   LucideShoppingCart,
   LucideSun,
   LucideTruck,
-  LucideUserCircle,
   LucideUsers,
   LucideWarehouse,
   LucideWifi,
@@ -36,9 +37,9 @@ import { ToastOutlet } from './toast-outlet';
 @Component({
   selector: 'app-shell',
   imports: [
-    RouterOutlet, RouterLink, RouterLinkActive, ToastOutlet, LucideBell, LucideBoxes, LucideChevronDown,
-    LucideDatabase, LucideFactory, LucideFileChartColumn, LucideHandshake, LucideLayoutDashboard, LucideMenu, LucideMoon,
-    LucidePanelLeftClose, LucidePanelLeftOpen, LucideScanLine, LucideSearch, LucideShoppingCart, LucideSun, LucideTruck, LucideUserCircle, LucideUsers, LucideWarehouse, LucideWifi, LucideWifiOff, LucideX,
+    RouterOutlet, RouterLink, RouterLinkActive, ToastOutlet, LucideBell, LucideBoxes, LucideCheck, LucideChevronDown,
+    LucideClipboardList, LucideDatabase, LucideFactory, LucideFileChartColumn, LucideHandshake, LucideLayoutDashboard, LucideMenu, LucideMoon,
+    LucidePanelLeftClose, LucidePanelLeftOpen, LucideScanLine, LucideSearch, LucideShoppingCart, LucideSun, LucideTruck, LucideUsers, LucideWarehouse, LucideWifi, LucideWifiOff, LucideX,
   ],
   templateUrl: './app-shell.html',
   styleUrl: './app-shell.scss',
@@ -52,11 +53,18 @@ export class AppShell {
   readonly mobileNavOpen = signal(false);
   readonly sidebarCollapsed = signal(false);
   readonly notificationsOpen = signal(false);
+  readonly roleMenuOpen = signal(false);
+  readonly roleOptions: { role: UserRole; description: string; token: string }[] = [
+    { role: 'Corporate Admin', description: 'All plants, records and settings', token: 'CA' },
+    { role: 'Plant Operator', description: 'Assigned plant scanning workspace', token: 'PO' },
+    { role: 'Sales', description: 'Orders, dispatch and reports', token: 'SA' },
+  ];
   private readonly navigation = toSignal(this.router.events, { initialValue: null });
   readonly today = new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).format(new Date());
   readonly pageTitle = computed(() => {
     this.navigation();
     const path = this.router.url;
+    if (path.includes('/barcode-records')) return 'Barcode Records';
     if (path.includes('/scan')) return 'Scan & Track';
     if (path.includes('/plant/dashboard')) return this.auth.role() === 'Plant Operator' ? 'My Plant' : 'Plant Dashboard';
     if (path.includes('/master-data/plants')) return 'Plant Master';
@@ -70,11 +78,13 @@ export class AppShell {
     return 'Corporate Dashboard';
   });
 
-  setRole(event: Event): void {
-    const role = (event.target as HTMLSelectElement).value as UserRole;
+  chooseRole(role: UserRole): void {
     this.auth.setRole(role);
+    this.roleMenuOpen.set(false);
     this.router.navigateByUrl(role === 'Plant Operator' ? '/plant/dashboard' : role === 'Sales' ? '/master-data/orders' : '/dashboard');
   }
+
+  toggleRoleMenu(): void { this.roleMenuOpen.update((open) => !open); this.notificationsOpen.set(false); }
 
   toggleConnection(): void {
     this.data.online.update((online) => !online);
@@ -102,4 +112,12 @@ export class AppShell {
     this.router.navigateByUrl('/dashboard');
     this.toast.success('Demo session reset', 'Returned to the Corporate Admin demonstration account.');
   }
+
+  @HostListener('document:mousedown', ['$event'])
+  closeRoleMenu(event: MouseEvent): void {
+    if (!(event.target as HTMLElement).closest('.user-control')) this.roleMenuOpen.set(false);
+  }
+
+  @HostListener('document:keydown.escape')
+  closeMenus(): void { this.roleMenuOpen.set(false); this.notificationsOpen.set(false); }
 }

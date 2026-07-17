@@ -34,9 +34,16 @@ export const INITIAL_ARTICLES: Article[] = [
 ];
 
 export const INITIAL_SCANS: ScanRecord[] = [
-  { id: 101, timestamp: new Date(Date.now() - 4 * 60000), plantId: 1, stage: 'Packed', articleId: 1, articleCode: 'SIP-SDZ-FSC-01', articleName: 'Front Seat Cover — Swift Dzire', quantity: 24, batch: 'B-2607-118', syncStatus: 'Synced' },
-  { id: 102, timestamp: new Date(Date.now() - 11 * 60000), plantId: 1, stage: 'QC Pass', articleId: 3, articleCode: 'SIP-CRE-FSC-03', articleName: 'Front Seat Cover — Creta', quantity: 18, batch: 'B-2607-116', syncStatus: 'Synced' },
-  { id: 103, timestamp: new Date(Date.now() - 23 * 60000), plantId: 1, stage: 'WIP', articleId: 11, articleCode: 'SIP-BRE-CST-11', articleName: 'Complete Seat Trim — Brezza', quantity: 12, batch: 'B-2607-114', syncStatus: 'Synced' },
+  { id: 101, timestamp: new Date(Date.now() - 4 * 60000), plantId: 1, articleId: 1, articleCode: 'SIP-SDZ-FSC-01', articleName: 'Front Seat Cover — Swift Dzire', barcode: '8904123001018', source: 'Camera', syncStatus: 'Synced' },
+  { id: 102, timestamp: new Date(Date.now() - 11 * 60000), plantId: 1, articleId: 3, articleCode: 'SIP-CRE-FSC-03', articleName: 'Front Seat Cover — Creta', barcode: '8904123001032', source: 'Camera', syncStatus: 'Synced' },
+  { id: 103, timestamp: new Date(Date.now() - 23 * 60000), plantId: 1, articleId: 11, articleCode: 'SIP-BRE-CST-11', articleName: 'Complete Seat Trim — Brezza', barcode: '8904123001117', source: 'Manual', syncStatus: 'Synced' },
+  { id: 104, timestamp: new Date(Date.now() - 3 * 3600000), plantId: 2, articleId: 11, articleCode: 'SIP-BRE-CST-11', articleName: 'Complete Seat Trim — Brezza', barcode: '8904123001117', source: 'Camera', syncStatus: 'Synced' },
+  { id: 105, timestamp: new Date(Date.now() - 7 * 3600000), plantId: 3, articleId: 2, articleCode: 'SIP-BOL-RBT-02', articleName: 'Rear Bench Trim — Bolero', barcode: '8904123001025', source: 'Manual', syncStatus: 'Synced' },
+  { id: 106, timestamp: new Date(Date.now() - 25 * 3600000), plantId: 4, articleId: 4, articleCode: 'SIP-NEX-CST-04', articleName: 'Complete Seat Trim — Nexon', barcode: '8904123001049', source: 'Camera', syncStatus: 'Synced' },
+  { id: 107, timestamp: new Date(Date.now() - 30 * 3600000), plantId: 9, articleId: 7, articleCode: 'SIP-ERT-CST-07', articleName: 'Complete Seat Trim — Ertiga', barcode: '8904123001070', source: 'Camera', syncStatus: 'Synced' },
+  { id: 108, timestamp: new Date(Date.now() - 49 * 3600000), plantId: 11, articleId: 3, articleCode: 'SIP-CRE-FSC-03', articleName: 'Front Seat Cover — Creta', barcode: '8904123001032', source: 'Camera', syncStatus: 'Pending' },
+  { id: 109, timestamp: new Date(Date.now() - 74 * 3600000), plantId: 14, articleId: 6, articleCode: 'SIP-ACE-DRT-06', articleName: 'Driver Seat Trim — Tata Ace', barcode: '8904123001063', source: 'Manual', syncStatus: 'Synced' },
+  { id: 110, timestamp: new Date(Date.now() - 98 * 3600000), plantId: 12, articleId: 9, articleCode: 'SIP-ALZ-HRT-09', articleName: 'Headrest Trim — Alcazar', barcode: '8904123001094', source: 'Camera', syncStatus: 'Synced' },
 ];
 
 const customers = ['Maruti Suzuki', 'Mahindra & Mahindra', 'Hyundai Motor India', 'Tata Motors', 'Ashok Leyland'];

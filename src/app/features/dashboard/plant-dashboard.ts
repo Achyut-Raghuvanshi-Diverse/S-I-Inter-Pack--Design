@@ -1,18 +1,30 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ChartComponent } from 'ng-apexcharts';
 import {
-  LucideArrowLeft, LucideArrowRight, LucideBoxes, LucideCalendarDays, LucideCheckCircle2,
-  LucideFactory, LucideGauge, LucidePackageCheck, LucideScanLine, LucideTruck, LucideWarehouse,
+  LucideArrowLeft,
+  LucideArrowRight,
+  LucideBarcode,
+  LucideBoxes,
+  LucideCamera,
+  LucideCheckCircle2,
+  LucideClipboardList,
+  LucideFactory,
+  LucideKeyboard,
+  LucidePackageCheck,
+  LucideScanLine,
+  LucideWifiOff,
 } from '@lucide/angular';
 import { AuthStore } from '../../core/auth.store';
 import { DataStore } from '../../core/data.store';
-import { ScanStage } from '../../core/models';
 
 @Component({
   selector: 'app-plant-dashboard',
-  imports: [ChartComponent, DecimalPipe, RouterLink, LucideArrowLeft, LucideArrowRight, LucideBoxes, LucideCalendarDays, LucideCheckCircle2, LucideFactory, LucideGauge, LucidePackageCheck, LucideScanLine, LucideTruck, LucideWarehouse],
+  imports: [
+    ChartComponent, RouterLink, LucideArrowLeft, LucideArrowRight, LucideBarcode,
+    LucideBoxes, LucideCamera, LucideCheckCircle2, LucideClipboardList, LucideFactory,
+    LucideKeyboard, LucidePackageCheck, LucideScanLine, LucideWifiOff,
+  ],
   templateUrl: './plant-dashboard.html',
   styleUrl: './plant-dashboard.scss',
 })
@@ -27,31 +39,36 @@ export class PlantDashboard {
   readonly plant = computed(() => this.data.plants().find((item) => item.id === this.plantId())!);
   readonly scans = computed(() => this.data.scans().filter((scan) => scan.plantId === this.plantId()));
   readonly recentScans = computed(() => this.scans().slice(0, 8));
-  readonly todayUnits = computed(() => this.scans().reduce((sum, scan) => sum + scan.quantity, 0) + 612 + this.plantId() * 19);
-  readonly mtdUnits = computed(() => this.plant().output);
-  readonly utilization = computed(() => this.plant().output / this.plant().capacity * 100);
-  readonly qcPass = computed(() => 98.2 - (this.plantId() % 3) * .3);
-  readonly stages: ScanStage[] = ['Raw Material In', 'WIP', 'QC Pass', 'Packed', 'Dispatched'];
-  readonly stageValues = computed(() => {
-    const base = [920, 824, 781, 746, 698].map((value) => value + this.plantId() * 11);
-    this.scans().forEach((scan) => { base[this.stages.indexOf(scan.stage)] += scan.quantity; });
-    return base;
-  });
-  readonly stageSeries = computed(() => [{ name: 'Units', data: this.stageValues() }]);
-  readonly trendSeries = computed(() => [{ name: 'Finished units', data: Array.from({ length: this.range() }, (_, index) => {
-    const seed = this.plantId() * 31 + index * 17;
-    return Math.round(this.plant().output / 26 + (seed % 120) - 55);
-  }) }]);
-  readonly trendCategories = computed(() => Array.from({ length: this.range() }, (_, index) => this.range() === 7 ? ['Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed'][index] : String(index + 1)));
-  readonly trendChart: any = { type: 'area', height: 275, toolbar: { show: false }, fontFamily: 'IBM Plex Sans', animations: { speed: 320 } };
-  readonly stageChart: any = { type: 'bar', height: 275, toolbar: { show: false }, fontFamily: 'IBM Plex Sans' };
-  readonly stagePlot: any = { bar: { horizontal: true, barHeight: '48%', borderRadius: 4, distributed: true } };
-  readonly dataLabels: any = { enabled: true, style: { fontSize: '9px', fontWeight: 700 }, offsetX: 8, formatter: (value: number) => value.toLocaleString('en-IN') };
-  readonly lineStroke: any = { width: 3, curve: 'smooth' };
-  readonly lineFill: any = { type: 'gradient', gradient: { opacityFrom: .2, opacityTo: .02, stops: [0, 95] } };
+  readonly todayScans = computed(() => this.scans().filter((scan) => this.isToday(scan.timestamp)).length);
+  readonly cameraScans = computed(() => this.scans().filter((scan) => scan.source === 'Camera').length);
+  readonly manualScans = computed(() => this.scans().filter((scan) => scan.source === 'Manual').length);
+  readonly pendingScans = computed(() => this.scans().filter((scan) => scan.syncStatus === 'Pending').length);
+  readonly syncedScans = computed(() => this.scans().length - this.pendingScans());
+  readonly trendDays = computed(() => Array.from({ length: this.range() }, (_, index) => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() - (this.range() - index - 1));
+    return date;
+  }));
+  readonly trendSeries = computed(() => [{
+    name: 'Barcode scans',
+    data: this.trendDays().map((day) => this.scans().filter((scan) => this.sameDay(scan.timestamp, day)).length),
+  }]);
+  readonly trendCategories = computed(() => this.trendDays().map((day) =>
+    new Intl.DateTimeFormat('en-IN', this.range() === 7 ? { weekday: 'short' } : { day: 'numeric', month: 'short' }).format(day)));
+  readonly methodSeries = computed(() => [this.cameraScans(), this.manualScans()]);
+  readonly trendChart: any = { type: 'bar', height: 275, toolbar: { show: false }, fontFamily: 'IBM Plex Sans', animations: { speed: 320 } };
+  readonly trendPlot: any = { bar: { columnWidth: '45%', borderRadius: 4 } };
+  readonly methodChart: any = { type: 'donut', height: 275, toolbar: { show: false }, fontFamily: 'IBM Plex Sans' };
+  readonly methodPlot: any = { pie: { donut: { size: '70%', labels: { show: true, total: { show: true, label: 'All scans', formatter: () => String(this.scans().length) } } } } };
+  readonly methodLegend: any = { position: 'bottom', fontSize: '10px', markers: { size: 5 } };
   readonly grid: any = { borderColor: '#ececf3', strokeDashArray: 4 };
-  readonly yaxis: any = { labels: { style: { colors: '#767986', fontSize: '9px' } } };
+  readonly yaxis: any = { min: 0, forceNiceScale: true, labels: { style: { colors: '#767986', fontSize: '9px' } } };
 
   time(value: Date): string { return new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date(value)); }
-  statusClass(): string { return this.plant().status === 'On target' ? 'success' : this.plant().status === 'Behind' ? 'warning' : 'danger'; }
+  private isToday(value: Date): boolean { return this.sameDay(value, new Date()); }
+  private sameDay(value: Date, day: Date): boolean {
+    const date = new Date(value);
+    return date.getFullYear() === day.getFullYear() && date.getMonth() === day.getMonth() && date.getDate() === day.getDate();
+  }
 }

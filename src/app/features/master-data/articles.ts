@@ -16,10 +16,11 @@ import { Article, VehicleSegment } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 import { Modal } from '../../shared/modal/modal';
 import { Pagination } from '../../shared/pagination/pagination';
+import { SearchSelect } from '../../shared/search-select/search-select';
 
 @Component({
   selector: 'app-articles',
-  imports: [ReactiveFormsModule, Modal, Pagination, LucideArrowUpDown, LucideBarcode, LucideBoxes, LucideDownload, LucidePencil, LucidePlus, LucideSearch, LucideTrash2],
+  imports: [ReactiveFormsModule, Modal, Pagination, SearchSelect, LucideArrowUpDown, LucideBarcode, LucideBoxes, LucideDownload, LucidePencil, LucidePlus, LucideSearch, LucideTrash2],
   templateUrl: './articles.html',
   styleUrl: './master-data.scss',
 })
@@ -32,6 +33,9 @@ export class Articles {
   readonly search = signal('');
   readonly segmentFilter = signal('All segments');
   readonly activeFilter = signal('Active and inactive');
+  readonly segmentOptions = ['All segments', 'Passenger', 'Commercial', 'Utility'].map((value) => ({ value, label: value }));
+  readonly articleSegmentOptions = ['Passenger', 'Commercial', 'Utility'].map((value) => ({ value, label: value }));
+  readonly availabilityOptions = ['Active and inactive', 'Active only'].map((value) => ({ value, label: value }));
   readonly plantFilter = signal<number | null>(null);
   readonly sortKey = signal<keyof Article>('modelName');
   readonly ascending = signal(true);
@@ -63,8 +67,8 @@ export class Articles {
   constructor() { this.search.set(this.route.snapshot.queryParamMap.get('q') ?? ''); this.plantFilter.set(Number(this.route.snapshot.queryParamMap.get('plant')) || null); }
 
   updateSearch(event: Event): void { this.search.set((event.target as HTMLInputElement).value); this.page.set(1); }
-  setSegment(event: Event): void { this.segmentFilter.set((event.target as HTMLSelectElement).value); this.page.set(1); }
-  setActive(event: Event): void { this.activeFilter.set((event.target as HTMLSelectElement).value); this.page.set(1); }
+  setSegmentValue(value: string | number | null): void { this.segmentFilter.set(String(value)); this.page.set(1); }
+  setActiveValue(value: string | number | null): void { this.activeFilter.set(String(value)); this.page.set(1); }
   sort(key: keyof Article): void { if (this.sortKey() === key) this.ascending.update((value) => !value); else { this.sortKey.set(key); this.ascending.set(true); } }
   plantCodes(ids: number[]): string { return ids.map((id) => this.data.plants().find((plant) => plant.id === id)?.code).filter(Boolean).join(', '); }
   margin(article: Article): number { return (article.unitPrice - article.unitCost) / article.unitPrice * 100; }

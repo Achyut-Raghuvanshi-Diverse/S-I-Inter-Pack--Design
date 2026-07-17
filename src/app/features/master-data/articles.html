@@ -6,8 +6,8 @@
 <section class="panel table-panel">
   <div class="master-toolbar filter-toolbar">
     <label class="input-icon search-control"><svg lucideSearch size="16"></svg><input class="control" type="search" aria-label="Search articles" placeholder="Search article code, model or material" [value]="search()" (input)="updateSearch($event)" /></label>
-    <label class="select-control"><span>Segment</span><select class="compact-select" aria-label="Filter by vehicle segment" [value]="segmentFilter()" (change)="setSegment($event)"><option>All segments</option><option>Passenger</option><option>Commercial</option><option>Utility</option></select></label>
-    <label class="select-control"><span>Availability</span><select class="compact-select" aria-label="Filter by article availability" [value]="activeFilter()" (change)="setActive($event)"><option>Active and inactive</option><option>Active only</option></select></label>
+    <app-search-select label="Segment" ariaLabel="Filter by vehicle segment" [searchable]="false" [options]="segmentOptions" [value]="segmentFilter()" (valueChange)="setSegmentValue($event)" />
+    <app-search-select label="Availability" ariaLabel="Filter by article availability" [searchable]="false" [options]="availabilityOptions" [value]="activeFilter()" (valueChange)="setActiveValue($event)" />
     @if (plantFilter()) { <button class="active-filter" type="button" (click)="clearPlantFilter()">{{ data.plants()[plantFilter()! - 1]?.code }} ×</button> }
     <span class="spacer"></span><button class="btn btn-secondary" type="button" (click)="exportCsv()"><svg lucideDownload size="15"></svg> Export CSV</button>
   </div>
@@ -31,7 +31,7 @@
     <section class="form-section"><h4>Article identity</h4><div class="form-grid">
       <label class="field"><span>Article code *</span><input formControlName="code" placeholder="SIP-MOD-FSC-01" />@if (form.controls.code.touched && form.controls.code.invalid) { <small class="error">Use an SI Inter Pack code beginning with SIP-.</small> }</label>
       <label class="field"><span>Model / article description *</span><input formControlName="modelName" placeholder="Front Seat Cover — Model" /></label>
-      <label class="field"><span>Vehicle segment *</span><select formControlName="segment"><option>Passenger</option><option>Commercial</option><option>Utility</option></select></label>
+      <label class="field"><span>Vehicle segment *</span><app-search-select variant="field" ariaLabel="Vehicle segment" [searchable]="false" [options]="articleSegmentOptions" formControlName="segment" /></label>
       <label class="field"><span>Seat cover type *</span><input formControlName="coverType" placeholder="Front bucket set" /></label>
       <label class="field wide"><span>Material *</span><input formControlName="material" placeholder="Knitted polyester" /></label>
     </div></section>

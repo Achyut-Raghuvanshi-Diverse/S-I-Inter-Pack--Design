@@ -20,7 +20,7 @@
   <div class="report-filters filter-toolbar">
     <label class="date-filter"><span>Reporting period</span><div><svg lucideCalendarDays size="14"></svg><input aria-label="Start date" type="date" value="2026-07-01" /><i>to</i><input aria-label="End date" type="date" value="2026-07-16" /></div></label>
     <app-search-select label="Plant scope" ariaLabel="Filter report by plant" [options]="plantOptions()" [value]="plantId()" (valueChange)="selectPlantValue($event)" />
-    <label><span>Product category</span><select [value]="productCategory()" (change)="selectCategory($event)"><option>All product categories</option><option>Seat covers</option><option>Interior sets</option></select></label>
+    <app-search-select label="Product category" ariaLabel="Filter report by product category" [searchable]="false" [options]="categoryOptions" [value]="productCategory()" (valueChange)="selectCategoryValue($event)" />
     <button class="btn btn-primary run-report" type="button" (click)="runReport()"><svg lucideRefreshCw size="14"></svg>Run report</button>
   </div>
   <div class="report-summary">@for (item of summaryCards(); track item.label) { <div><span>{{ item.label }}</span><strong [class.positive]="item.tone === 'positive'" [class.negative]="item.tone === 'negative'">{{ item.value }}</strong></div> }</div>

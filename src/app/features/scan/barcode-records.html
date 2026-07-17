@@ -1,0 +1,42 @@
+<section class="page-heading">
+  <div>
+    <div class="eyebrow">{{ plantLocked() ? 'My plant records' : 'All plant records' }}</div>
+    <h2>Barcode records</h2>
+    <p>{{ plantLocked() ? 'Every barcode saved at your assigned plant.' : 'A complete list of barcodes saved across all plants.' }}</p>
+  </div>
+  <button class="btn btn-primary" type="button" (click)="exportCsv()"><svg lucideDownload size="16"></svg> Export CSV</button>
+</section>
+
+@if (plantLocked()) {
+  <div class="record-scope"><svg lucideBarcode size="19"></svg><div><small>Assigned plant</small><strong>{{ data.plantName(auth.assignedPlantId()) }}</strong></div><span>Plant access is locked</span></div>
+}
+
+<div class="record-summary">
+  <article><span class="summary-icon violet"><svg lucideBarcode size="19"></svg></span><div><small>Total barcodes</small><strong>{{ scoped().length }}</strong><em>{{ plantLocked() ? 'At this plant' : 'Across all plants' }}</em></div></article>
+  <article><span class="summary-icon indigo"><svg lucideCamera size="19"></svg></span><div><small>Camera scans</small><strong>{{ cameraScans() }}</strong><em>Read from barcode labels</em></div></article>
+  <article><span class="summary-icon blue"><svg lucideKeyboard size="19"></svg></span><div><small>Manual entries</small><strong>{{ manualScans() }}</strong><em>Fallback code entries</em></div></article>
+  <article><span class="summary-icon" [class.green]="!pendingScans()" [class.amber]="pendingScans()">@if (pendingScans()) { <svg lucideWifiOff size="19"></svg> } @else { <svg lucideCheckCircle2 size="19"></svg> }</span><div><small>Pending sync</small><strong>{{ pendingScans() }}</strong><em>{{ pendingScans() ? 'Waiting for connection' : 'All records synced' }}</em></div></article>
+</div>
+
+<section class="panel table-panel barcode-table-panel">
+  <div class="record-toolbar filter-toolbar">
+    <label class="input-icon search-control"><svg lucideSearch size="16"></svg><input class="control" type="search" aria-label="Search barcode records" placeholder="Search barcode, article or plant" [value]="search()" (input)="updateSearch($event)" /></label>
+    @if (!plantLocked()) {
+      <app-search-select label="Plant" ariaLabel="Filter barcode records by plant" [options]="plantOptions()" [value]="plantId()" (valueChange)="setPlantValue($event)" />
+    }
+    <app-search-select label="Entry method" ariaLabel="Filter barcode records by entry method" [searchable]="false" [options]="sourceOptions" [value]="source()" (valueChange)="setSourceValue($event)" />
+    <app-search-select label="Sync" ariaLabel="Filter barcode records by sync status" [searchable]="false" [options]="syncOptions" [value]="syncStatus()" (valueChange)="setStatusValue($event)" />
+    <span class="result-count">{{ filtered().length }} records</span>
+  </div>
+
+  @if (paged().length) {
+    <div class="data-table-wrap"><table class="data-table"><thead><tr><th>Date & time</th><th>Barcode</th><th>Article / model</th><th>Plant</th><th>Entry method</th><th>Sync status</th></tr></thead><tbody>
+      @for (scan of paged(); track scan.id) {
+        <tr><td><div class="cell-stack"><strong>{{ date(scan.timestamp) }}</strong><small>{{ time(scan.timestamp) }}</small></div></td><td class="barcode-cell">{{ scan.barcode }}</td><td><div class="cell-stack"><strong>{{ scan.articleName }}</strong><small>{{ scan.articleCode }}</small></div></td><td><div class="cell-stack"><strong>{{ plantCode(scan.plantId) }}</strong><small>{{ data.plantName(scan.plantId) }}</small></div></td><td><span class="method">@if (scan.source === 'Camera') { <svg lucideCamera size="14"></svg> } @else { <svg lucideKeyboard size="14"></svg> }{{ scan.source }}</span></td><td><span [class]="'badge ' + (scan.syncStatus === 'Synced' ? 'success' : 'warning')">{{ scan.syncStatus }}</span></td></tr>
+      }
+    </tbody></table></div>
+    <app-pagination [page]="page()" [total]="filtered().length" [pageSize]="pageSize" noun="barcode records" (pageChange)="page.set($event)" />
+  } @else {
+    <div class="empty-state"><div><svg lucideBarcode size="29"></svg><h3>No barcode records found</h3><p>Try clearing a filter or scan a product barcode first.</p></div></div>
+  }
+</section>

@@ -6,7 +6,7 @@
 <section class="panel table-panel">
   <div class="master-toolbar filter-toolbar">
     <label class="input-icon search-control"><svg lucideSearch size="16"></svg><input class="control" type="search" aria-label="Search plants" placeholder="Search code, plant, location or contact" [value]="search()" (input)="updateSearch($event)" /></label>
-    <label class="select-control"><span>Status</span><select class="compact-select" aria-label="Filter plants by status" [value]="statusFilter()" (change)="setStatus($event)"><option>All statuses</option><option>On target</option><option>Behind</option><option>Over capacity</option></select></label>
+    <app-search-select label="Status" ariaLabel="Filter plants by status" [searchable]="false" [options]="statusOptions" [value]="statusFilter()" (valueChange)="setStatusValue($event)" />
     @if (selected().length) { <span class="selection-note">{{ selected().length }} selected</span><button class="btn btn-secondary" type="button" (click)="bulkOnTarget()">Mark on target</button> }
     <span class="spacer"></span><button class="btn btn-secondary" type="button" (click)="exportCsv()"><svg lucideDownload size="15"></svg> Export CSV</button>
   </div>
@@ -42,7 +42,7 @@
     </div></section>
     <section class="form-section"><h4>Capacity & operating status</h4><div class="form-grid">
       <label class="field"><span>Monthly capacity (units) *</span><input type="number" formControlName="capacity" /></label><label class="field"><span>Current MTD output *</span><input type="number" formControlName="output" /></label>
-      <label class="field"><span>Operating status *</span><select formControlName="status"><option>On target</option><option>Behind</option><option>Over capacity</option></select></label>
+      <label class="field"><span>Operating status *</span><app-search-select variant="field" ariaLabel="Operating status" [searchable]="false" [options]="operatingStatusOptions" formControlName="status" /></label>
     </div></section>
     <section class="form-section"><h4>Plant contact</h4><div class="form-grid"><label class="field"><span>Plant head *</span><input formControlName="contact" placeholder="Full name" /></label><label class="field"><span>Phone *</span><input formControlName="phone" placeholder="+91 98110 22041" />@if (form.controls.phone.touched && form.controls.phone.invalid) { <small class="error">Enter the phone as +91 12345 67890.</small> }</label></div></section>
     @if (form.invalid && form.touched) { <div class="form-error-summary">Complete all required plant details before saving.</div> }

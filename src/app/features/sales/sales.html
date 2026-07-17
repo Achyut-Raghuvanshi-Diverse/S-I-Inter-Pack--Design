@@ -14,7 +14,7 @@
   <div class="ledger-toolbar filter-toolbar">
     <label class="input-icon search-control"><svg lucideSearch size="16"></svg><input class="control" type="search" aria-label="Search dispatch records" placeholder="Search invoice, article or customer" [value]="search()" (input)="updateSearch($event)" /></label>
     <app-search-select label="Plant" ariaLabel="Filter dispatches by plant" [options]="plantOptions()" [value]="plantId()" (valueChange)="setPlantValue($event)" />
-    <label class="select-control"><span>Status</span><select class="compact-select" aria-label="Filter dispatches by status" [value]="status()" (change)="setStatus($event)"><option>All statuses</option><option>Delivered</option><option>In transit</option><option>Ready</option></select></label>
+    <app-search-select label="Status" ariaLabel="Filter dispatches by status" [searchable]="false" [options]="statusOptions" [value]="status()" (valueChange)="setStatusValue($event)" />
     <label class="date-control"><svg lucideCalendarDays size="14"></svg><input type="date" [value]="dateFrom()" (change)="setDateFrom($event)" aria-label="From date" /><span>to</span><input type="date" [value]="dateTo()" (change)="setDateTo($event)" aria-label="To date" /></label>
     <span class="result-count">{{ filtered().length }} records</span>
   </div>

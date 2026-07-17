@@ -14,10 +14,11 @@ import { Plant, PlantStatus } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 import { Modal } from '../../shared/modal/modal';
 import { Pagination } from '../../shared/pagination/pagination';
+import { SearchSelect } from '../../shared/search-select/search-select';
 
 @Component({
   selector: 'app-plants',
-  imports: [ReactiveFormsModule, Modal, Pagination, LucideArrowUpDown, LucideDownload, LucidePencil, LucidePlus, LucideSearch, LucideTrash2],
+  imports: [ReactiveFormsModule, Modal, Pagination, SearchSelect, LucideArrowUpDown, LucideDownload, LucidePencil, LucidePlus, LucideSearch, LucideTrash2],
   templateUrl: './plants.html',
   styleUrl: './master-data.scss',
 })
@@ -29,6 +30,8 @@ export class Plants {
   readonly view = signal<'list' | 'edit'>('list');
   readonly search = signal('');
   readonly statusFilter = signal('All statuses');
+  readonly statusOptions = ['All statuses', 'On target', 'Behind', 'Over capacity'].map((value) => ({ value, label: value }));
+  readonly operatingStatusOptions = ['On target', 'Behind', 'Over capacity'].map((value) => ({ value, label: value }));
   readonly sortKey = signal<keyof Plant>('name');
   readonly ascending = signal(true);
   readonly page = signal(1);
@@ -60,7 +63,7 @@ export class Plants {
 
   updateSearch(event: Event): void { this.search.set((event.target as HTMLInputElement).value); this.page.set(1); }
   sort(key: keyof Plant): void { if (this.sortKey() === key) this.ascending.update((value) => !value); else { this.sortKey.set(key); this.ascending.set(true); } }
-  setStatus(event: Event): void { this.statusFilter.set((event.target as HTMLSelectElement).value); this.page.set(1); }
+  setStatusValue(value: string | number | null): void { this.statusFilter.set(String(value)); this.page.set(1); }
   statusClass(status: string): string { return status === 'On target' ? 'success' : status === 'Behind' ? 'warning' : 'danger'; }
   toggle(id: number): void { this.selected.update((ids) => ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id]); }
   toggleAll(): void { this.selected.set(this.selected().length === this.paged().length ? [] : this.paged().map((plant) => plant.id)); }

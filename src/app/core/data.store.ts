@@ -1,6 +1,6 @@
 import { computed, Injectable, signal } from '@angular/core';
 import { INITIAL_ARTICLES, INITIAL_CUSTOMERS, INITIAL_INVENTORY, INITIAL_LEDGER, INITIAL_ORDERS, INITIAL_PLANTS, INITIAL_SCANS, INITIAL_USERS, PRODUCTION_ROWS } from './mock-data';
-import { AppUser, Article, Customer, InventoryItem, LedgerEntry, Order, Plant, ScanRecord, ScanStage } from './models';
+import { AppUser, Article, Customer, InventoryItem, LedgerEntry, Order, Plant, ScanRecord, ScanSource } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class DataStore {
@@ -86,32 +86,27 @@ export class DataStore {
   }
   deleteUser(id: number): void { this.users.update((items) => items.filter((item) => item.id !== id)); }
 
-  addScan(input: { plantId: number; stage: ScanStage; articleCode: string; quantity: number; batch: string }): { ok: boolean; message: string } {
+  addScan(input: { plantId: number; articleCode: string; source: ScanSource }): { ok: boolean; message: string } {
     const normalized = input.articleCode.trim().toUpperCase();
     const article = this.articles().find((item) => item.code === normalized || item.barcode === input.articleCode.trim());
-    if (!article) return { ok: false, message: 'Unknown article code. Check the label or enter the code manually.' };
+    if (!article) return { ok: false, message: 'Barcode not recognised. Scan the label again.' };
     if (!article.plantIds.includes(input.plantId)) return { ok: false, message: 'This article is not assigned to the selected plant.' };
-    const duplicate = this.scans().find((scan) => scan.batch === input.batch && scan.articleId === article.id && scan.stage === input.stage);
-    if (duplicate) return { ok: false, message: `Duplicate scan. Batch ${input.batch} is already recorded at this stage.` };
+
+    const timestamp = new Date();
 
     const record: ScanRecord = {
-      id: Date.now(),
-      timestamp: new Date(),
+      id: timestamp.getTime(),
+      timestamp,
       plantId: input.plantId,
-      stage: input.stage,
       articleId: article.id,
       articleCode: article.code,
       articleName: article.modelName,
-      quantity: input.quantity,
-      batch: input.batch,
+      barcode: article.barcode,
+      source: input.source,
       syncStatus: this.online() ? 'Synced' : 'Pending',
     };
-    this.scans.update((scans) => [record, ...scans].slice(0, 50));
-    return { ok: true, message: this.online() ? `${input.quantity} units recorded successfully.` : 'Saved on this device. It will sync when the connection returns.' };
-  }
-
-  undoScan(id: number): void {
-    this.scans.update((scans) => scans.filter((scan) => scan.id !== id));
+    this.scans.update((scans) => [record, ...scans]);
+    return { ok: true, message: this.online() ? 'The barcode was saved successfully.' : 'Saved on this device. It will sync when the connection returns.' };
   }
 
   retryPending(): void {

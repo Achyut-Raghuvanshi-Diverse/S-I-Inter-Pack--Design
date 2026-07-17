@@ -29,6 +29,7 @@ export class Sales {
   readonly plantId = signal<number | null>(null);
   readonly plantOptions = computed(() => [{ value: null, label: 'All plants', description: 'All dispatch locations' }, ...this.data.plants().map((plant) => ({ value: plant.id, label: `${plant.code} — ${plant.name}`, description: `${plant.location}, ${plant.state}` }))]);
   readonly status = signal('All statuses');
+  readonly statusOptions = ['All statuses', 'Delivered', 'In transit', 'Ready'].map((value) => ({ value, label: value }));
   readonly dateFrom = signal('2026-07-01');
   readonly dateTo = signal('2026-07-16');
   readonly sortKey = signal<keyof LedgerEntry>('date');
@@ -52,9 +53,8 @@ export class Sales {
   constructor() { this.plantId.set(Number(this.route.snapshot.queryParamMap.get('plant')) || null); }
 
   updateSearch(event: Event): void { this.search.set((event.target as HTMLInputElement).value); this.page.set(1); }
-  setPlant(event: Event): void { this.plantId.set(Number((event.target as HTMLSelectElement).value) || null); this.page.set(1); }
   setPlantValue(value: string | number | null): void { this.plantId.set(Number(value) || null); this.page.set(1); }
-  setStatus(event: Event): void { this.status.set((event.target as HTMLSelectElement).value); this.page.set(1); }
+  setStatusValue(value: string | number | null): void { this.status.set(String(value)); this.page.set(1); }
   setDateFrom(event: Event): void { this.dateFrom.set((event.target as HTMLInputElement).value); this.page.set(1); }
   setDateTo(event: Event): void { this.dateTo.set((event.target as HTMLInputElement).value); this.page.set(1); }
   sort(key: keyof LedgerEntry): void { if (this.sortKey() === key) this.ascending.update((value) => !value); else { this.sortKey.set(key); this.ascending.set(true); } }

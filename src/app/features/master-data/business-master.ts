@@ -10,6 +10,7 @@ import { AppUser, Customer, InventoryItem, Order } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 import { Modal } from '../../shared/modal/modal';
 import { Pagination } from '../../shared/pagination/pagination';
+import { SearchSelect } from '../../shared/search-select/search-select';
 
 type EntityKind = 'customers' | 'orders' | 'inventory' | 'users';
 type BusinessItem = Customer | Order | InventoryItem | AppUser;
@@ -23,7 +24,7 @@ const META: Record<EntityKind, { eyebrow: string; title: string; description: st
 
 @Component({
   selector: 'app-business-master',
-  imports: [ReactiveFormsModule, Modal, Pagination, LucideArrowUpDown, LucideBox, LucideDownload, LucidePencil, LucidePlus, LucideRefreshCw, LucideSearch, LucideTrash2],
+  imports: [ReactiveFormsModule, Modal, Pagination, SearchSelect, LucideArrowUpDown, LucideBox, LucideDownload, LucidePencil, LucidePlus, LucideRefreshCw, LucideSearch, LucideTrash2],
   templateUrl: './business-master.html',
   styleUrls: ['./master-data.scss', './business-master.scss'],
 })
@@ -45,6 +46,15 @@ export class BusinessMaster {
   readonly ascending = signal(true);
   readonly saving = signal(false);
   readonly form = this.buildForm();
+  readonly filterStatusOptions = [{ value: 'All', label: 'All' }, ...this.statuses().map((value) => ({ value, label: value }))];
+  readonly customerStatusOptions = ['Active', 'On hold'].map((value) => ({ value, label: value }));
+  readonly orderStatusOptions = ['Draft', 'Confirmed', 'In Production', 'Dispatched', 'Invoiced'].map((value) => ({ value, label: value }));
+  readonly roleOptions = ['Corporate Admin', 'Plant Operator', 'Sales'].map((value) => ({ value, label: value }));
+  readonly userStatusOptions = ['Active', 'Suspended'].map((value) => ({ value, label: value }));
+  readonly customerOptions = computed(() => this.data.customers().map((customer) => ({ value: customer.id, label: customer.name, description: customer.code })));
+  readonly articleOptions = computed(() => this.data.articles().map((article) => ({ value: article.id, label: article.modelName, description: article.code })));
+  readonly plantOptions = computed(() => this.data.plants().map((plant) => ({ value: plant.id, label: plant.name, description: `${plant.code} · ${plant.location}` })));
+  readonly assignedPlantOptions = computed(() => [{ value: null, label: 'All plants', description: 'Corporate or sales access' }, ...this.plantOptions()]);
 
   readonly items = computed<BusinessItem[]>(() => {
     switch (this.kind) {
@@ -80,7 +90,7 @@ export class BusinessMaster {
     return ['Healthy', 'Reorder', 'Critical'];
   }
   updateSearch(event: Event): void { this.search.set((event.target as HTMLInputElement).value); this.page.set(1); }
-  updateStatus(event: Event): void { this.statusFilter.set((event.target as HTMLSelectElement).value); this.page.set(1); }
+  updateStatusValue(value: string | number | null): void { this.statusFilter.set(String(value)); this.page.set(1); }
   sort(): void { this.ascending.update((value) => !value); }
   previousPage(): void { this.page.set(Math.max(1, this.page() - 1)); }
   nextPage(): void { this.page.set(Math.min(this.pages(), this.page() + 1)); }

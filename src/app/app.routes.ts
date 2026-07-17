@@ -11,6 +11,7 @@ export const routes: Routes = [
       { path: 'plant/dashboard', canActivate: [roleGuard, plantScopeGuard], data: { roles: ['Corporate Admin', 'Plant Operator'] }, loadComponent: () => import('./features/dashboard/plant-dashboard').then((m) => m.PlantDashboard) },
       { path: 'plant/dashboard/:plantId', canActivate: [roleGuard, plantScopeGuard], data: { roles: ['Corporate Admin', 'Plant Operator'] }, loadComponent: () => import('./features/dashboard/plant-dashboard').then((m) => m.PlantDashboard) },
       { path: 'scan', canActivate: [roleGuard], data: { roles: ['Corporate Admin', 'Plant Operator'] }, loadComponent: () => import('./features/scan/scan').then((m) => m.Scan) },
+      { path: 'barcode-records', canActivate: [roleGuard], data: { roles: ['Corporate Admin', 'Plant Operator'] }, loadComponent: () => import('./features/scan/barcode-records').then((m) => m.BarcodeRecords) },
       { path: 'master-data/plants', canActivate: [roleGuard], data: { roles: ['Corporate Admin', 'Sales'] }, loadComponent: () => import('./features/master-data/plants').then((m) => m.Plants) },
       { path: 'master-data/articles', canActivate: [roleGuard], data: { roles: ['Corporate Admin', 'Sales'] }, loadComponent: () => import('./features/master-data/articles').then((m) => m.Articles) },
       { path: 'master-data/customers', canActivate: [roleGuard], data: { entity: 'customers', roles: ['Corporate Admin', 'Sales'] }, loadComponent: () => import('./features/master-data/business-master').then((m) => m.BusinessMaster) },

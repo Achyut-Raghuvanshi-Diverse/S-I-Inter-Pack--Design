@@ -2,7 +2,7 @@
   <div>
     <div class="eyebrow">Plant floor · {{ data.plantName(plantId()) }}</div>
     <h2>Scan & Track</h2>
-    <p>Capture each production movement with a verified article, batch and quantity.</p>
+    <p>Scan a product barcode and save it to the assigned plant.</p>
   </div>
   <div class="shift-info"><span class="shift-dot"></span><strong>Shift A</strong><small>06:00–14:00 · Operator 042</small></div>
 </section>
@@ -14,7 +14,7 @@
 <div class="scan-layout">
   <section class="scan-workspace panel" [class.success-state]="result()?.type === 'success'">
     <div class="step-rail" aria-label="Scan progress">
-      @for (label of ['Plant', 'Stage', 'Scan', 'Confirm']; track label; let index = $index) {
+      @for (label of ['Plant', 'Scan', 'Confirm']; track label; let index = $index) {
         <div [class.current]="step() === index + 1" [class.complete]="step() > index + 1">
           <span>@if (step() > index + 1) { <svg lucideCheck size="13"></svg> } @else { {{ index + 1 }} }</span>
           <small>{{ label }}</small>
@@ -24,27 +24,23 @@
 
     <div class="scan-card">
       @if (step() === 1) {
-        <div class="step-title"><span>Step 1 of 4</span><h3>Select this device’s plant</h3><p>All scans from this session will be recorded against this facility.</p></div>
-        <label class="large-field"><span>Plant</span><select [value]="plantId()" (change)="setPlant($event)">@for (plant of data.plants(); track plant.id) { <option [value]="plant.id">{{ plant.code }} — {{ plant.name }}</option> }</select></label>
-        <div class="device-note"><svg lucidePackageCheck size="22"></svg><div><strong>Assigned device</strong><span>Scanner GGN-01-TAB-04 · Plant can be changed by a supervisor.</span></div></div>
-        <button class="scan-primary" type="button" (click)="step.set(2)">Continue to stage <svg lucideArrowRight size="21"></svg></button>
+        <div class="step-title"><span>Step 1 of 3</span><h3>{{ plantLocked() ? 'Your assigned plant' : 'Select this device’s plant' }}</h3><p>Every barcode scanned on this device is saved against this plant.</p></div>
+        @if (plantLocked()) {
+          <div class="locked-plant" aria-label="Assigned plant">
+            <span><svg lucidePackageCheck size="23"></svg></span>
+            <div><small>Plant</small><strong>{{ plantName() }}</strong><em>{{ plantCode() }}</em></div>
+            <b>Assigned</b>
+          </div>
+        } @else {
+          <app-search-select variant="field" label="Plant" ariaLabel="Select this device’s plant" [options]="plantOptions()" [value]="plantId()" (valueChange)="setPlantValue($event)" />
+        }
+        <div class="device-note"><svg lucidePackageCheck size="22"></svg><div><strong>{{ plantLocked() ? 'Plant locked for this role' : 'Assigned device' }}</strong><span>{{ plantLocked() ? 'The plant is set automatically and cannot be changed.' : 'Choose the facility before opening the scanner.' }}</span></div></div>
+        <button class="scan-primary" type="button" (click)="step.set(2)">Continue to scan <svg lucideArrowRight size="21"></svg></button>
       }
 
       @if (step() === 2) {
-        @if (!plantLocked()) { <button class="back-btn" type="button" (click)="step.set(1)"><svg lucideArrowLeft size="17"></svg> Back</button> }
-        <div class="step-title"><span>Movement type</span><h3>Choose the production stage</h3><p>Select the event that should be recorded for this article.</p></div>
-        <div class="stage-grid">
-          @for (item of stages; track item.name) {
-            <button type="button" [class.selected]="stage() === item.name" (click)="chooseStage(item.name)">
-              <span class="stage-index">{{ $index + 1 }}</span><span><strong>{{ item.name }}</strong><small>{{ item.description }}</small></span><svg lucideArrowRight size="18"></svg>
-            </button>
-          }
-        </div>
-      }
-
-      @if (step() === 3) {
-        <button class="back-btn" type="button" (click)="step.set(2)"><svg lucideArrowLeft size="17"></svg> Back</button>
-        <div class="step-title"><span>Step 3 of 4 · {{ stage() }}</span><h3>Scan the article barcode</h3><p>Hold the label inside the frame. The code will be read automatically.</p></div>
+        <button class="back-btn" type="button" (click)="step.set(1)"><svg lucideArrowLeft size="17"></svg> Plant</button>
+        <div class="step-title"><span>Step 2 of 3</span><h3>Scan the product barcode</h3><p>Hold the label inside the frame, or enter the code manually if the barcode cannot be read.</p></div>
         @if (cameraOpen()) {
           <div class="camera-view">
             <video #scannerVideo muted playsinline></video><div class="scan-frame"></div>
@@ -52,56 +48,50 @@
           </div>
         } @else {
           <button class="camera-trigger" type="button" (click)="startCamera()">
-            <span class="camera-icon"><svg lucideScanBarcode size="42"></svg></span><strong>Open camera scanner</strong><small>Point the camera at a barcode or QR label</small><span class="camera-action"><svg lucideCamera size="17"></svg> Start camera</span>
+            <span class="camera-icon"><svg lucideScanBarcode size="42"></svg></span><strong>Open barcode scanner</strong><small>Point the camera at the product label</small><span class="camera-action"><svg lucideCamera size="17"></svg> Start scanning</span>
           </button>
         }
         @if (cameraError()) { <div class="inline-error"><svg lucideCircleAlert size="17"></svg>{{ cameraError() }}</div> }
-        <div class="divider"><span>or enter manually</span></div>
-        <label class="manual-code"><span><svg lucideKeyboard size="17"></svg> Article code or barcode</span><div><input autofocus [value]="articleCode()" (input)="updateCode($event)" (keydown.enter)="goToConfirm()" placeholder="e.g. SIP-SDZ-FSC-01" /><button type="button" (click)="goToConfirm()">Continue</button></div></label>
-        @if (foundArticle()) { <div class="article-found"><svg lucideCheck size="18"></svg><div><strong>{{ foundArticle()!.modelName }}</strong><span>{{ foundArticle()!.code }} · {{ foundArticle()!.material }}</span></div></div> }
+        <div class="divider"><span>Barcode not working?</span></div>
+        <label class="manual-code"><span><svg lucideKeyboard size="17"></svg> Enter barcode or article code</span><div><input [value]="articleCode()" (input)="updateCode($event)" (keydown.enter)="goToConfirm()" placeholder="Type barcode or article code" autocomplete="off" /><button type="button" [disabled]="!articleCode().trim()" (click)="goToConfirm()">Continue</button></div></label>
         @if (result()?.type === 'error') { <div class="inline-error"><svg lucideCircleAlert size="17"></svg>{{ result()!.message }}</div> }
+        <div class="scan-note"><svg lucideCheck size="17"></svg><span>Scanning or manual entry fills in the product automatically. You will only need to confirm it.</span></div>
       }
 
-      @if (step() === 4 && result()?.type !== 'success') {
-        <button class="back-btn" type="button" (click)="step.set(3)"><svg lucideArrowLeft size="17"></svg> Back</button>
-        <div class="step-title"><span>Final verification</span><h3>Confirm quantity and batch</h3><p>Review the movement details before saving the record.</p></div>
-        <div class="confirm-article"><span class="article-token">{{ foundArticle()!.code.slice(4, 7) }}</span><div><strong>{{ foundArticle()!.modelName }}</strong><span>{{ foundArticle()!.code }} · {{ foundArticle()!.segment }}</span></div><span class="badge violet">{{ stage() }}</span></div>
-        <div class="confirmation-grid">
-          <label class="large-field"><span>Quantity</span><div class="stepper"><button type="button" (click)="decreaseQuantity()">−</button><input type="number" min="1" [value]="quantity()" (input)="updateQuantity($event)" /><button type="button" (click)="increaseQuantity()">+</button></div></label>
-          <label class="large-field"><span>Batch / lot code</span><input [value]="batch()" (input)="updateBatch($event)" /></label>
-        </div>
-        <dl class="scan-summary"><div><dt>Plant</dt><dd>{{ plantName() }}</dd></div><div><dt>Stage</dt><dd>{{ stage() }}</dd></div><div><dt>Article</dt><dd>{{ foundArticle()!.code }}</dd></div></dl>
+      @if (step() === 3 && result()?.type !== 'success') {
+        <button class="back-btn" type="button" (click)="step.set(2)"><svg lucideArrowLeft size="17"></svg> Scan again</button>
+        <div class="step-title"><span>Step 3 of 3</span><h3>Confirm this barcode</h3><p>Check the product and plant, then save. There are no fields to edit.</p></div>
+        <div class="confirm-article"><span class="article-token">{{ foundArticle()!.code.slice(4, 7) }}</span><div><strong>{{ foundArticle()!.modelName }}</strong><span>{{ foundArticle()!.code }} · {{ foundArticle()!.segment }}</span></div><span class="badge violet">{{ entrySource() }}</span></div>
+        <dl class="scan-summary"><div><dt>Plant</dt><dd>{{ plantName() }}</dd></div><div><dt>Barcode</dt><dd>{{ foundArticle()!.barcode }}</dd></div><div><dt>Entry method</dt><dd>{{ entrySource() }}</dd></div></dl>
         @if (result()?.type === 'error') { <div class="inline-error"><svg lucideCircleAlert size="17"></svg>{{ result()!.message }}</div> }
-        <button class="scan-primary submit-scan" type="button" [disabled]="!batch().trim()" (click)="submit()"><svg lucideCheck size="23"></svg> Record {{ quantity() }} units</button>
+        <button class="scan-primary submit-scan" type="button" (click)="submit()"><svg lucideCheck size="23"></svg> Confirm & save</button>
       }
 
       @if (result()?.type === 'success') {
         <div class="success-confirmation">
           <div class="success-tick"><svg lucideCheck size="48"></svg></div>
-          <span>Scan recorded</span><h3>{{ quantity() }} units · {{ stage() }}</h3><p>{{ result()!.message }}</p>
-          <div class="success-details"><span>{{ foundArticle()!.code }}</span><strong>{{ batch() }}</strong><span>{{ plantName() }}</span></div>
+          <span>Barcode saved</span><h3>{{ foundArticle()!.modelName }}</h3><p>{{ result()!.message }}</p>
+          <div class="success-details"><span>{{ foundArticle()!.code }}</span><strong>{{ foundArticle()!.barcode }}</strong><span>{{ plantName() }}</span></div>
           @if (!data.online()) { <div class="pending-sync"><svg lucideWifiOff size="17"></svg> Waiting to sync when connection returns</div> }
-          <button class="scan-primary" type="button" (click)="scanAnother()"><svg lucideScanBarcode size="22"></svg> Scan another article</button>
-          <button class="secondary-large" type="button" (click)="step.set(2); result.set(null)">Change production stage</button>
+          <button class="scan-primary" type="button" (click)="scanAnother()"><svg lucideScanBarcode size="22"></svg> Scan another barcode</button>
         </div>
       }
     </div>
   </section>
 
   <aside class="recent-panel panel" id="recent">
-    <div class="panel-head"><div><h3>Recent scans</h3><p>Latest activity on this device</p></div><span class="live-mark"><i></i> Live</span></div>
+    <div class="panel-head"><div><h3>Recent scans</h3><p>Latest saved barcodes on this device</p></div><a class="all-records-link" routerLink="/barcode-records">View all</a></div>
     <div class="recent-list">
       @for (scan of recentScans(); track scan.id) {
         <article>
           <div class="recent-icon" [class.pending]="scan.syncStatus === 'Pending'"><svg lucidePackageCheck size="18"></svg></div>
-          <div class="recent-copy"><strong>{{ scan.articleName }}</strong><span>{{ scan.articleCode }} · {{ scan.batch }}</span><small><svg lucideClock3 size="11"></svg>{{ time(scan.timestamp) }} · {{ scan.stage }} · <b>{{ scan.quantity }} units</b></small></div>
-          <button type="button" aria-label="Undo scan" title="Undo scan" (click)="undo(scan.id)"><svg lucideRotateCcw size="15"></svg></button>
+          <div class="recent-copy"><strong>{{ scan.articleName }}</strong><span>{{ scan.barcode }}</span><small><svg lucideClock3 size="11"></svg>{{ time(scan.timestamp) }} · {{ scan.source }}</small></div>
           <span class="sync-status" [class.pending]="scan.syncStatus === 'Pending'">{{ scan.syncStatus }}</span>
         </article>
       } @empty {
         <div class="empty-recent"><svg lucideScanBarcode size="28"></svg><span>No scans on this device yet.</span></div>
       }
     </div>
-    <div class="shift-summary"><span>Shift total</span><strong>{{ recentScans().length }} scans · {{ recentUnits() }} units</strong></div>
+    <div class="shift-summary"><span>Shift total</span><strong>{{ recentScans().length }} barcode scans</strong></div>
   </aside>
 </div>
