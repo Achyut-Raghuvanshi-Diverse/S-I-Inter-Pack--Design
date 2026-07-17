@@ -1,12 +1,14 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, effect, ElementRef, HostListener, inject, input, OnDestroy, output, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, ElementRef, HostListener, inject, input, OnDestroy, output, viewChild } from '@angular/core';
 import { LucideX } from '@lucide/angular';
+let nextModalId = 0;
 
 @Component({
   selector: 'app-modal',
   imports: [LucideX],
   templateUrl: './modal.html',
   styleUrl: './modal.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Modal implements OnDestroy {
   private readonly document = inject(DOCUMENT);
@@ -14,6 +16,10 @@ export class Modal implements OnDestroy {
   private readonly panel = viewChild<ElementRef<HTMLElement>>('panel');
   private restoreFocus: HTMLElement | null = null;
   private inertSiblings: HTMLElement[] = [];
+  private wasOpen = false;
+  readonly componentId = `app-modal-${++nextModalId}`;
+  readonly titleId = `${this.componentId}-title`;
+  readonly descriptionId = `${this.componentId}-description`;
 
   readonly open = input(false);
   readonly inline = input(false);
@@ -28,9 +34,12 @@ export class Modal implements OnDestroy {
       if (!this.open() || this.inline()) {
         this.document.body.classList.remove('modal-open');
         this.setBackgroundInert(false);
+        if (this.wasOpen) window.setTimeout(() => this.restoreFocus?.focus());
+        this.wasOpen = false;
         return;
       }
-      this.restoreFocus = this.document.activeElement as HTMLElement;
+      if (!this.wasOpen) this.restoreFocus = this.document.activeElement as HTMLElement;
+      this.wasOpen = true;
       this.document.body.classList.add('modal-open');
       this.setBackgroundInert(true);
       window.setTimeout(() => this.focusInitialControl());
@@ -39,7 +48,6 @@ export class Modal implements OnDestroy {
 
   close(): void {
     this.closed.emit();
-    window.setTimeout(() => this.restoreFocus?.focus());
   }
 
   backdrop(event: MouseEvent): void {
@@ -58,7 +66,12 @@ export class Modal implements OnDestroy {
     else if (!event.shiftKey && this.document.activeElement === last) { event.preventDefault(); first.focus(); }
   }
 
-  ngOnDestroy(): void { this.document.body.classList.remove('modal-open'); this.setBackgroundInert(false); }
+  ngOnDestroy(): void {
+    this.document.body.classList.remove('modal-open');
+    this.setBackgroundInert(false);
+    if (this.wasOpen) window.setTimeout(() => this.restoreFocus?.focus());
+    this.wasOpen = false;
+  }
 
   private focusInitialControl(): void {
     const controls = this.focusableControls();
@@ -73,8 +86,13 @@ export class Modal implements OnDestroy {
 
   private setBackgroundInert(inert: boolean): void {
     if (inert) {
-      const parent = this.host.nativeElement.parentElement;
-      this.inertSiblings = parent ? [...parent.children].filter((item): item is HTMLElement => item instanceof HTMLElement && item !== this.host.nativeElement) : [];
+      let current: HTMLElement | null = this.host.nativeElement;
+      this.inertSiblings = [];
+      while (current.parentElement && current.parentElement !== this.document.body) {
+        const parent: HTMLElement = current.parentElement;
+        this.inertSiblings.push(...[...parent.children].filter((item): item is HTMLElement => item instanceof HTMLElement && item !== current));
+        current = parent;
+      }
       for (const sibling of this.inertSiblings) { sibling.inert = true; sibling.setAttribute('aria-hidden', 'true'); }
       return;
     }

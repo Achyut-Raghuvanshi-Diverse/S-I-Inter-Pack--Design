@@ -1,4 +1,5 @@
-import { Component, computed, HostListener, inject, signal } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, HostListener, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import {
@@ -34,16 +35,18 @@ import { UserRole } from '../core/models';
 import { ToastService } from '../core/toast.service';
 import { ThemeStore } from '../core/theme.store';
 import { ToastOutlet } from './toast-outlet';
+import { ConfirmOutlet } from './confirm-outlet';
 
 @Component({
   selector: 'app-shell',
   imports: [
-    RouterOutlet, RouterLink, RouterLinkActive, ToastOutlet, LucideArrowRight, LucideBell, LucideBoxes, LucideCheck, LucideChevronDown,
+    RouterOutlet, RouterLink, RouterLinkActive, ToastOutlet, ConfirmOutlet, LucideArrowRight, LucideBell, LucideBoxes, LucideCheck, LucideChevronDown,
     LucideClipboardList, LucideDatabase, LucideFactory, LucideFileChartColumn, LucideHandshake, LucideLayoutDashboard, LucideMenu, LucideMoon,
     LucidePanelLeftClose, LucidePanelLeftOpen, LucideScanLine, LucideSearch, LucideShoppingCart, LucideSun, LucideTruck, LucideUsers, LucideWarehouse, LucideWifi, LucideWifiOff, LucideX,
   ],
   templateUrl: './app-shell.html',
   styleUrl: './app-shell.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppShell {
   readonly auth = inject(AuthStore);
@@ -51,6 +54,7 @@ export class AppShell {
   readonly router = inject(Router);
   readonly toast = inject(ToastService);
   readonly theme = inject(ThemeStore);
+  private readonly document = inject(DOCUMENT);
   readonly mobileNavOpen = signal(false);
   readonly sidebarCollapsed = signal(false);
   readonly notificationsOpen = signal(false);
@@ -89,9 +93,18 @@ export class AppShell {
 
   toggleRoleMenu(): void { this.roleMenuOpen.update((open) => !open); this.notificationsOpen.set(false); }
 
+  roleMenuKeydown(event: KeyboardEvent): void {
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const options = [...(event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>('[role="option"]')];
+    if (!options.length) return;
+    const current = options.indexOf(this.document.activeElement as HTMLButtonElement);
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1 : event.key === 'ArrowDown' ? (current + 1) % options.length : (current - 1 + options.length) % options.length;
+    options[next]?.focus();
+  }
+
   toggleConnection(): void {
-    this.data.online.update((online) => !online);
-    if (this.data.online()) this.data.retryPending();
+    this.data.toggleOnline();
   }
 
   closeNav(): void {

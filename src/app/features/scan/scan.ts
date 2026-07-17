@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, inject, OnDestroy, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, OnDestroy, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
 import {
@@ -28,6 +28,7 @@ import { SearchSelect } from '../../shared/search-select/search-select';
   ],
   templateUrl: './scan.html',
   styleUrl: './scan.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Scan implements OnDestroy {
   readonly data = inject(DataStore);
@@ -56,9 +57,6 @@ export class Scan implements OnDestroy {
 
   constructor() {
     if (this.plantLocked()) this.plantId.set(this.auth.assignedPlantId());
-    effect(() => {
-      if (this.data.online()) this.data.retryPending();
-    });
   }
 
   setPlantValue(value: string | number | null): void {
@@ -136,9 +134,9 @@ export class Scan implements OnDestroy {
   }
 
   plantName(): string { return this.data.plantName(this.plantId()); }
-  plantCode(): string { return this.data.plants().find((plant) => plant.id === this.plantId())?.code ?? ''; }
+  plantCode(): string { return this.data.plantCode(this.plantId()); }
   time(date: Date): string { return new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date(date)); }
-  retrySync(): void { this.data.online.set(true); this.data.retryPending(); this.toast.success('Sync complete', 'Pending barcode scans have been sent successfully.'); }
+  retrySync(): void { this.data.setOnline(true); this.toast.success('Sync complete', 'Pending barcode scans have been sent successfully.'); }
 
   private tone(frequency: number, duration: number): void {
     try {

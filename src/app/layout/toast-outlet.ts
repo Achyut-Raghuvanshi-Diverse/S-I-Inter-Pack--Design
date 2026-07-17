@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { LucideCircleAlert, LucideCircleCheck, LucideInfo, LucideX } from '@lucide/angular';
 import { ToastService } from '../core/toast.service';
 
@@ -8,7 +8,7 @@ import { ToastService } from '../core/toast.service';
   template: `
     <div class="toast-stack" aria-live="polite">
       @for (toast of service.messages(); track toast.id) {
-        <article class="toast" [class]="'toast ' + toast.type">
+        <article class="toast" [class]="'toast ' + toast.type" [attr.role]="toast.type === 'error' ? 'alert' : 'status'" aria-atomic="true">
           <span class="toast-icon">
             @if (toast.type === 'success') { <svg lucideCircleCheck size="19"></svg> }
             @else if (toast.type === 'error') { <svg lucideCircleAlert size="19"></svg> }
@@ -32,5 +32,6 @@ import { ToastService } from '../core/toast.service';
     @media (max-width: 820px) { .toast-stack { bottom: 78px; right: 14px; } }
     @media (prefers-reduced-motion: reduce) { .toast { animation: none; } }
   `],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ToastOutlet { readonly service = inject(ToastService); }

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import {
   LucideBarcode,
   LucideCamera,
@@ -10,6 +10,7 @@ import {
 } from '@lucide/angular';
 import { AuthStore } from '../../core/auth.store';
 import { DataStore } from '../../core/data.store';
+import { CsvExportService } from '../../core/csv-export.service';
 import { ScanRecord, ScanSource } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 import { Pagination } from '../../shared/pagination/pagination';
@@ -23,11 +24,13 @@ import { SearchSelect } from '../../shared/search-select/search-select';
   ],
   templateUrl: './barcode-records.html',
   styleUrl: './barcode-records.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BarcodeRecords {
   readonly auth = inject(AuthStore);
   readonly data = inject(DataStore);
   readonly toast = inject(ToastService);
+  private readonly csv = inject(CsvExportService);
   readonly search = signal('');
   readonly plantId = signal<number | null>(null);
   readonly source = signal<'All methods' | ScanSource>('All methods');
@@ -59,16 +62,24 @@ export class BarcodeRecords {
     (this.page() - 1) * this.pageSize,
     this.page() * this.pageSize,
   ));
-  readonly cameraScans = computed(() => this.scoped().filter((scan) => scan.source === 'Camera').length);
-  readonly manualScans = computed(() => this.scoped().filter((scan) => scan.source === 'Manual').length);
-  readonly pendingScans = computed(() => this.scoped().filter((scan) => scan.syncStatus === 'Pending').length);
+  readonly scopedMetrics = computed(() => {
+    let camera = 0; let manual = 0; let pending = 0;
+    for (const scan of this.scoped()) {
+      if (scan.source === 'Camera') camera += 1; else manual += 1;
+      if (scan.syncStatus === 'Pending') pending += 1;
+    }
+    return { camera, manual, pending };
+  });
+  readonly cameraScans = computed(() => this.scopedMetrics().camera);
+  readonly manualScans = computed(() => this.scopedMetrics().manual);
+  readonly pendingScans = computed(() => this.scopedMetrics().pending);
 
   updateSearch(event: Event): void { this.search.set((event.target as HTMLInputElement).value); this.page.set(1); }
   setPlantValue(value: string | number | null): void { this.plantId.set(Number(value) || null); this.page.set(1); }
   setSourceValue(value: string | number | null): void { this.source.set(String(value) as 'All methods' | ScanSource); this.page.set(1); }
   setStatusValue(value: string | number | null): void { this.syncStatus.set(String(value) as 'All statuses' | ScanRecord['syncStatus']); this.page.set(1); }
   setYearValue(value: string | number | null): void { this.year.set(String(value)); this.page.set(1); }
-  plantCode(id: number): string { return this.data.plants().find((plant) => plant.id === id)?.code ?? '—'; }
+  plantCode(id: number): string { return this.data.plantCode(id); }
   date(value: Date): string { return new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value)); }
   time(value: Date): string { return new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date(value)); }
 
@@ -78,12 +89,7 @@ export class BarcodeRecords {
       this.date(scan.timestamp), this.time(scan.timestamp), scan.barcode, scan.articleCode,
       scan.articleName, this.data.plantName(scan.plantId), scan.source, scan.syncStatus,
     ]);
-    const csv = [header, ...rows].map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\r\n');
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-    link.download = 'si-inter-pack-barcode-records.csv';
-    link.click();
-    URL.revokeObjectURL(link.href);
+    this.csv.download('si-inter-pack-barcode-records.csv', [header, ...rows]);
     this.toast.success('Barcode export ready', `${this.filtered().length} barcode records were exported.`);
   }
 }

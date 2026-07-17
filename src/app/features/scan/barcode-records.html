@@ -31,7 +31,7 @@
   </div>
 
   @if (paged().length) {
-    <div class="data-table-wrap"><table class="data-table"><thead><tr><th>Date & time</th><th>Barcode</th><th>Article / model</th><th>Plant</th><th>Entry method</th><th>Sync status</th></tr></thead><tbody>
+    <div class="data-table-wrap" tabindex="0" aria-label="Scrollable barcode records table"><table class="data-table"><caption class="sr-only">Barcode scan records</caption><thead><tr><th>Date & time</th><th>Barcode</th><th>Article / model</th><th>Plant</th><th>Entry method</th><th>Sync status</th></tr></thead><tbody>
       @for (scan of paged(); track scan.id) {
         <tr><td><div class="cell-stack"><strong>{{ date(scan.timestamp) }}</strong><small>{{ time(scan.timestamp) }}</small></div></td><td class="barcode-cell">{{ scan.barcode }}</td><td><div class="cell-stack"><strong>{{ scan.articleName }}</strong><small>{{ scan.articleCode }}</small></div></td><td><div class="cell-stack"><strong>{{ plantCode(scan.plantId) }}</strong><small>{{ data.plantName(scan.plantId) }}</small></div></td><td><span class="method">@if (scan.source === 'Camera') { <svg lucideCamera size="14"></svg> } @else { <svg lucideKeyboard size="14"></svg> }{{ scan.source }}</span></td><td><span [class]="'badge ' + (scan.syncStatus === 'Synced' ? 'success' : 'warning')">{{ scan.syncStatus }}</span></td></tr>
       }

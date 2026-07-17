@@ -1,8 +1,9 @@
-import { Component, computed, ElementRef, forwardRef, HostListener, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, forwardRef, HostListener, inject, input, output, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { LucideCheck, LucideChevronDown, LucideSearch } from '@lucide/angular';
 
 export interface SearchSelectOption { value: string | number | null; label: string; description?: string; }
+let nextSelectId = 0;
 
 @Component({
   selector: 'app-search-select',
@@ -10,9 +11,12 @@ export interface SearchSelectOption { value: string | number | null; label: stri
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => SearchSelect), multi: true }],
   templateUrl: './search-select.html',
   styleUrl: './search-select.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SearchSelect implements ControlValueAccessor {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  readonly componentId = `search-select-${++nextSelectId}`;
+  readonly listboxId = `${this.componentId}-listbox`;
   readonly options = input.required<SearchSelectOption[]>();
   readonly value = input<string | number | null>(null);
   readonly label = input('');
@@ -37,6 +41,7 @@ export class SearchSelect implements ControlValueAccessor {
     const query = this.query().trim().toLowerCase();
     return this.options().filter((option) => !query || `${option.label} ${option.description ?? ''}`.toLowerCase().includes(query));
   });
+  readonly activeOptionId = computed(() => this.open() && this.filtered()[this.activeIndex()] ? `${this.componentId}-option-${this.activeIndex()}` : null);
   private onChange: (value: string | number | null) => void = () => undefined;
   private onTouched: () => void = () => undefined;
 
@@ -81,6 +86,12 @@ export class SearchSelect implements ControlValueAccessor {
 
   private navigate(event: KeyboardEvent): void {
     if (event.key === 'Escape') { event.preventDefault(); this.open.set(false); return; }
+    if (event.key === 'Tab') { this.open.set(false); this.onTouched(); return; }
+    if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      this.activeIndex.set(event.key === 'Home' ? 0 : Math.max(0, this.filtered().length - 1));
+      return;
+    }
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
       const offset = event.key === 'ArrowDown' ? 1 : -1;

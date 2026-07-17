@@ -1,4 +1,5 @@
 <div class="app-frame" [class.nav-open]="mobileNavOpen()" [class.sidebar-collapsed]="sidebarCollapsed()">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <aside class="sidebar" aria-label="Primary navigation">
     <div class="brand">
       <div class="brand-emblem"><img class="brand-mark" src="si-logo.svg" alt="SI Inter Pack logo" /><i></i></div>
@@ -9,45 +10,45 @@
     <nav class="nav-list">
       @if (auth.role() === 'Plant Operator') {
         <p class="nav-label">My plant workspace</p>
-        <a routerLink="/plant/dashboard" routerLinkActive="active" (click)="closeNav()"><svg lucideFactory size="19"></svg><span>{{ data.plantName(auth.assignedPlantId()) }} overview</span></a>
-        <a routerLink="/scan" routerLinkActive="active" (click)="closeNav()"><svg lucideScanLine size="19"></svg><span>Scan & track</span>@if (data.pendingScans()) { <em>{{ data.pendingScans() }}</em> }</a>
-        <a routerLink="/barcode-records" routerLinkActive="active" (click)="closeNav()"><svg lucideClipboardList size="19"></svg><span>Barcode records</span></a>
+        <a routerLink="/plant/dashboard" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideFactory size="19"></svg><span>{{ data.plantName(auth.assignedPlantId()) }} overview</span></a>
+        <a routerLink="/scan" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideScanLine size="19"></svg><span>Scan & track</span>@if (data.pendingScans()) { <em>{{ data.pendingScans() }}</em> }</a>
+        <a routerLink="/barcode-records" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideClipboardList size="19"></svg><span>Barcode records</span></a>
       } @else if (auth.role() === 'Sales') {
         <p class="nav-label">Sales workspace</p>
-        <a routerLink="/master-data/orders" routerLinkActive="active" (click)="closeNav()"><svg lucideShoppingCart size="19"></svg><span>Purchase orders</span></a>
-        <a routerLink="/sales" routerLinkActive="active" (click)="closeNav()"><svg lucideTruck size="19"></svg><span>Sales & dispatch</span></a>
+        <a routerLink="/master-data/orders" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideShoppingCart size="19"></svg><span>Purchase orders</span></a>
+        <a routerLink="/sales" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideTruck size="19"></svg><span>Sales & dispatch</span></a>
         <p class="nav-label">Commercial records</p>
-        <a routerLink="/master-data/customers" routerLinkActive="active" (click)="closeNav()"><svg lucideHandshake size="19"></svg><span>Customers & OEMs</span></a>
-        <a routerLink="/master-data/articles" routerLinkActive="active" (click)="closeNav()"><svg lucideBoxes size="19"></svg><span>Articles & models</span></a>
-        <a routerLink="/master-data/inventory" routerLinkActive="active" (click)="closeNav()"><svg lucideWarehouse size="19"></svg><span>Inventory</span></a>
-        <a routerLink="/reports" routerLinkActive="active" (click)="closeNav()"><svg lucideFileChartColumn size="19"></svg><span>Reports centre</span></a>
+        <a routerLink="/master-data/customers" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideHandshake size="19"></svg><span>Customers & OEMs</span></a>
+        <a routerLink="/master-data/articles" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideBoxes size="19"></svg><span>Articles & models</span></a>
+        <a routerLink="/master-data/inventory" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideWarehouse size="19"></svg><span>Inventory</span></a>
+        <a routerLink="/reports" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideFileChartColumn size="19"></svg><span>Reports centre</span></a>
       } @else {
         <p class="nav-label">Overview</p>
-        <a routerLink="/dashboard" routerLinkActive="active" (click)="closeNav()"><svg lucideLayoutDashboard size="19"></svg><span>Corporate dashboard</span></a>
+        <a routerLink="/dashboard" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideLayoutDashboard size="19"></svg><span>Corporate dashboard</span></a>
         <p class="nav-label">Plant operations</p>
-        <a routerLink="/scan" routerLinkActive="active" (click)="closeNav()"><svg lucideScanLine size="19"></svg><span>Scan & track</span>@if (data.pendingScans()) { <em>{{ data.pendingScans() }}</em> }</a>
-        <a routerLink="/barcode-records" routerLinkActive="active" (click)="closeNav()"><svg lucideClipboardList size="19"></svg><span>Barcode records</span></a>
-        <a routerLink="/master-data/inventory" routerLinkActive="active" (click)="closeNav()"><svg lucideWarehouse size="19"></svg><span>Inventory</span></a>
+        <a routerLink="/scan" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideScanLine size="19"></svg><span>Scan & track</span>@if (data.pendingScans()) { <em>{{ data.pendingScans() }}</em> }</a>
+        <a routerLink="/barcode-records" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideClipboardList size="19"></svg><span>Barcode records</span></a>
+        <a routerLink="/master-data/inventory" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideWarehouse size="19"></svg><span>Inventory</span></a>
         <p class="nav-label">Master data</p>
-        <a routerLink="/master-data/plants" routerLinkActive="active" (click)="closeNav()"><svg lucideDatabase size="19"></svg><span>Plants</span></a>
-        <a routerLink="/master-data/articles" routerLinkActive="active" (click)="closeNav()"><svg lucideBoxes size="19"></svg><span>Articles & models</span></a>
-        <a routerLink="/master-data/customers" routerLinkActive="active" (click)="closeNav()"><svg lucideHandshake size="19"></svg><span>Customers & OEMs</span></a>
-        <a routerLink="/master-data/users" routerLinkActive="active" (click)="closeNav()"><svg lucideUsers size="19"></svg><span>Users & roles</span></a>
+        <a routerLink="/master-data/plants" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideDatabase size="19"></svg><span>Plants</span></a>
+        <a routerLink="/master-data/articles" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideBoxes size="19"></svg><span>Articles & models</span></a>
+        <a routerLink="/master-data/customers" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideHandshake size="19"></svg><span>Customers & OEMs</span></a>
+        <a routerLink="/master-data/users" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideUsers size="19"></svg><span>Users & roles</span></a>
         <p class="nav-label">Commercial</p>
-        <a routerLink="/master-data/orders" routerLinkActive="active" (click)="closeNav()"><svg lucideShoppingCart size="19"></svg><span>Purchase orders</span></a>
-        <a routerLink="/sales" routerLinkActive="active" (click)="closeNav()"><svg lucideTruck size="19"></svg><span>Sales & dispatch</span></a>
-        <a routerLink="/reports" routerLinkActive="active" (click)="closeNav()"><svg lucideFileChartColumn size="19"></svg><span>Reports centre</span></a>
+        <a routerLink="/master-data/orders" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideShoppingCart size="19"></svg><span>Purchase orders</span></a>
+        <a routerLink="/sales" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideTruck size="19"></svg><span>Sales & dispatch</span></a>
+        <a routerLink="/reports" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNav()"><svg lucideFileChartColumn size="19"></svg><span>Reports centre</span></a>
       }
     </nav>
 
   </aside>
 
-  <div class="mobile-scrim" (click)="closeNav()"></div>
+  <button class="mobile-scrim" type="button" aria-label="Close navigation" (click)="closeNav()"></button>
   <section class="workspace">
     <header class="topbar">
       <div class="topbar-leading">
         <button class="icon-btn desktop-sidebar-toggle" type="button" [attr.aria-label]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'" (click)="toggleSidebar()">@if (sidebarCollapsed()) { <svg lucidePanelLeftOpen size="19"></svg> } @else { <svg lucidePanelLeftClose size="19"></svg> }</button>
-        <button class="icon-btn mobile-menu" type="button" aria-label="Open navigation" (click)="mobileNavOpen.set(true)"><svg lucideMenu size="21"></svg></button>
+        <button class="icon-btn mobile-menu" type="button" aria-label="Open navigation" [attr.aria-expanded]="mobileNavOpen()" (click)="mobileNavOpen.set(true)"><svg lucideMenu size="21"></svg></button>
         <img class="mobile-brand" src="si-logo.svg" alt="" />
         <div class="page-identity"><span class="topbar-kicker"><i></i>Operations intelligence</span><div class="title-line"><h1>{{ pageTitle() }}</h1><span class="topbar-date">{{ today }}<b>·</b>FY 2026–27</span></div></div>
       </div>
@@ -61,7 +62,7 @@
         <div class="user-control">
           <button class="user-trigger" type="button" role="combobox" aria-haspopup="listbox" aria-label="Switch demo role" [attr.aria-expanded]="roleMenuOpen()" (click)="toggleRoleMenu()"><div class="avatar-wrap"><div class="avatar">{{ auth.initials() }}</div><i></i></div><div class="user-copy"><strong>{{ auth.userName() }}</strong><span>{{ auth.role() }}</span></div><span class="user-chevron"><svg lucideChevronDown size="14"></svg></span></button>
           @if (roleMenuOpen()) {
-            <div class="role-menu" role="listbox" aria-label="Switch demo role">
+            <div class="role-menu" role="listbox" aria-label="Switch demo role" (keydown)="roleMenuKeydown($event)">
               <div class="role-menu-head"><strong>Switch workspace</strong><span>Choose the view you want to preview</span></div>
               <div class="role-options">@for (option of roleOptions; track option.role) { <button type="button" role="option" [class.selected]="auth.role() === option.role" [attr.aria-selected]="auth.role() === option.role" (click)="chooseRole(option.role)"><span class="role-token">{{ option.token }}</span><span class="role-copy"><strong>{{ option.role }}</strong><small>{{ option.description }}</small></span>@if (auth.role() === option.role) { <span class="role-check"><svg lucideCheck size="14"></svg></span> }</button> }</div>
             </div>
@@ -80,15 +81,16 @@
         </aside>
       }
     </header>
-    <main class="page-content">
+    <main id="main-content" class="page-content" tabindex="-1">
       <router-outlet />
-      @if (data.dataState() === 'loading') { <div class="route-state loading-state" aria-label="Loading current data"><div class="loading-line"></div><div class="loading-cards">@for (item of [1,2,3,4]; track item) { <span></span> }</div><div class="loading-table">@for (item of [1,2,3,4,5]; track item) { <span></span> }</div></div> }
-      @if (data.dataState() === 'error') { <div class="route-state error-state"><div><strong>Current records could not be loaded</strong><p>{{ data.dataError() || 'The mock data service did not respond. Existing local data has been preserved.' }}</p><button class="btn btn-primary" type="button" (click)="data.retry()">Retry loading</button></div></div> }
+      @if (data.dataState() === 'loading') { <div class="route-state loading-state" role="status" aria-live="polite" aria-label="Loading current data"><div class="loading-line"></div><div class="loading-cards">@for (item of [1,2,3,4]; track item) { <span></span> }</div><div class="loading-table">@for (item of [1,2,3,4,5]; track item) { <span></span> }</div></div> }
+      @if (data.dataState() === 'error') { <div class="route-state error-state" role="alert"><div><strong>Current records could not be loaded</strong><p>{{ data.dataError() || 'The mock data service did not respond. Existing local data has been preserved.' }}</p><button class="btn btn-primary" type="button" (click)="data.retry()">Retry loading</button></div></div> }
     </main>
   </section>
 
   @if (auth.role() === 'Plant Operator' && (router.url.includes('/scan') || router.url.includes('/barcode-records') || router.url.includes('/plant/dashboard'))) {
-    <nav class="operator-nav" aria-label="Operator navigation"><a routerLink="/plant/dashboard" routerLinkActive="active"><svg lucideFactory size="22"></svg><span>My Plant</span></a><a routerLink="/scan" routerLinkActive="active"><svg lucideScanLine size="22"></svg><span>Scan</span></a><a routerLink="/barcode-records" routerLinkActive="active"><svg lucideClipboardList size="22"></svg><span>Records</span></a></nav>
+    <nav class="operator-nav" aria-label="Operator navigation"><a routerLink="/plant/dashboard" routerLinkActive="active" ariaCurrentWhenActive="page"><svg lucideFactory size="22"></svg><span>My Plant</span></a><a routerLink="/scan" routerLinkActive="active" ariaCurrentWhenActive="page"><svg lucideScanLine size="22"></svg><span>Scan</span></a><a routerLink="/barcode-records" routerLinkActive="active" ariaCurrentWhenActive="page"><svg lucideClipboardList size="22"></svg><span>Records</span></a></nav>
   }
   <app-toast-outlet />
+  <app-confirm-outlet />
 </div>

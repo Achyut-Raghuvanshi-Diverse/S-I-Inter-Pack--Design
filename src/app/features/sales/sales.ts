@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import {
   LucideArrowUpDown,
@@ -10,6 +10,7 @@ import {
   LucideTruck,
 } from '@lucide/angular';
 import { DataStore } from '../../core/data.store';
+import { CsvExportService } from '../../core/csv-export.service';
 import { LedgerEntry } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 import { Pagination } from '../../shared/pagination/pagination';
@@ -20,10 +21,12 @@ import { SearchSelect } from '../../shared/search-select/search-select';
   imports: [Pagination, SearchSelect, LucideArrowUpDown, LucideCalendarDays, LucideDownload, LucideIndianRupee, LucidePackageCheck, LucideSearch, LucideTruck],
   templateUrl: './sales.html',
   styleUrl: './sales.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Sales {
   readonly data = inject(DataStore);
   readonly toast = inject(ToastService);
+  private readonly csv = inject(CsvExportService);
   private readonly route = inject(ActivatedRoute);
   readonly search = signal('');
   readonly plantId = signal<number | null>(null);
@@ -46,8 +49,6 @@ export class Sales {
   readonly totalUnits = computed(() => this.filtered().reduce((sum, entry) => sum + entry.quantity, 0));
   readonly totalValue = computed(() => this.filtered().reduce((sum, entry) => sum + entry.quantity * entry.rate, 0));
   readonly averageRate = computed(() => this.totalUnits() ? this.totalValue() / this.totalUnits() : 0);
-  readonly pages = computed(() => Math.max(1, Math.ceil(this.filtered().length / this.pageSize)));
-  readonly pageNumbers = computed(() => Array.from({ length: this.pages() }, (_, index) => index + 1));
   readonly paged = computed(() => this.filtered().slice((this.page() - 1) * this.pageSize, this.page() * this.pageSize));
 
   constructor() { this.plantId.set(Number(this.route.snapshot.queryParamMap.get('plant')) || null); }
@@ -58,20 +59,16 @@ export class Sales {
   setDateFrom(event: Event): void { this.dateFrom.set((event.target as HTMLInputElement).value); this.page.set(1); }
   setDateTo(event: Event): void { this.dateTo.set((event.target as HTMLInputElement).value); this.page.set(1); }
   sort(key: keyof LedgerEntry): void { if (this.sortKey() === key) this.ascending.update((value) => !value); else { this.sortKey.set(key); this.ascending.set(true); } }
+  ariaSort(key: keyof LedgerEntry): 'ascending' | 'descending' | null { return this.sortKey() === key ? (this.ascending() ? 'ascending' : 'descending') : null; }
   statusClass(status: string): string { return status === 'Delivered' ? 'success' : status === 'In transit' ? 'warning' : 'violet'; }
   value(entry: LedgerEntry): number { return entry.quantity * entry.rate; }
-  maxShown(): number { return Math.min(this.page() * this.pageSize, this.filtered().length); }
-  previousPage(): void { this.page.set(Math.max(1, this.page() - 1)); }
-  nextPage(): void { this.page.set(Math.min(this.pages(), this.page() + 1)); }
-  plantCode(id: number): string { return this.data.plants().find((plant) => plant.id === id)?.code ?? '—'; }
-
   exportCsv(): void {
     const header = ['Date', 'Plant', 'Article code', 'Article', 'Customer', 'Quantity', 'Rate', 'Total value', 'Status', 'Invoice'];
     const rows = this.filtered().map((entry) => {
-      const article = this.data.articles().find((item) => item.id === entry.articleId)!;
-      return [entry.date, this.data.plantName(entry.plantId), article.code, article.modelName, entry.customer, entry.quantity, entry.rate, this.value(entry), entry.status, entry.invoice];
+      const article = this.data.articleById(entry.articleId);
+      return [entry.date, this.data.plantCode(entry.plantId), article?.code ?? '—', article?.modelName ?? 'Unknown article', entry.customer, entry.quantity, entry.rate, this.value(entry), entry.status, entry.invoice];
     });
-    const csv = [header, ...rows].map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\r\n');
-    const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); link.download = 'si-inter-pack-dispatch-ledger.csv'; link.click(); URL.revokeObjectURL(link.href); this.toast.success('Ledger export ready', `${this.filtered().length} filtered dispatch records were exported.`);
+    this.csv.download('si-inter-pack-dispatch-ledger.csv', [header, ...rows]);
+    this.toast.success('Ledger export ready', `${this.filtered().length} filtered dispatch records were exported.`);
   }
 }

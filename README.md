@@ -24,10 +24,21 @@ Open `http://localhost:4200`. Use the role selector in the top-right user contro
 - Paginated datasets for 15,000 barcode scans, 12,000 dispatch entries, 8,000 orders, 2,500 stock records, 750 users, 500 customers and 300 articles
 - Responsive notification centre with live barcode sync, reorder and historical-data alerts
 
+## Architecture
+
+- Standalone, lazy-loaded Angular feature components with `OnPush` change detection and signal-based view state
+- Encapsulated stores that expose read-only signals and explicit mutation commands
+- Memoized entity lookup maps so records remain correct when IDs are non-contiguous
+- Shared accessible modal, confirmation, searchable select, pagination, validation-state and CSV export utilities
+- Typed ApexCharts configuration with a shared chart theme and aggregated reporting data
+- Role and plant-scope route guards, descriptive route titles and restored scroll position
+- Keyboard-accessible navigation, dialogs, tables and dropdowns with reduced-motion support
+
 ## Verification
 
 ```bash
 npm run build
+node scripts/visual-check.mjs
 ```
 
 `scripts/visual-check.mjs` audits every lazy route, the Corporate/Plant Operator/Sales guards and flows, CRUD save feedback, report export, scan touch targets, console errors and horizontal overflow from 390–1440px. It writes temporary screenshots to `artifacts/`.

@@ -1,4 +1,4 @@
-import { Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { LucideChevronLeft, LucideChevronRight } from '@lucide/angular';
 
 @Component({
@@ -6,6 +6,7 @@ import { LucideChevronLeft, LucideChevronRight } from '@lucide/angular';
   imports: [LucideChevronLeft, LucideChevronRight],
   templateUrl: './pagination.html',
   styleUrl: './pagination.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Pagination {
   readonly page = input.required<number>();

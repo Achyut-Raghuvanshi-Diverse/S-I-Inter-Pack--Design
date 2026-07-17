@@ -33,6 +33,8 @@ async function inspect(name, path, viewport, action) {
 
 await inspect('corporate-overview', '/dashboard', { width: 1440, height: 900 }, async (page) => {
   await page.waitForTimeout(500);
+  check('Routes expose descriptive document titles', (await page.title()).includes('Corporate Dashboard'));
+  check('Keyboard users have a skip link', await page.getByRole('link', { name: 'Skip to main content' }).count() === 1);
 });
 
 await inspect('theme-dark-collapsed', '/dashboard', { width: 1440, height: 900 }, async (page) => {
@@ -114,6 +116,7 @@ await inspect('scan-mobile', '/scan', { width: 390, height: 844 }, async (page) 
   check('Scan primary tap target geometry', tapDebug.unobstructed, JSON.stringify(tapDebug));
   await firstAction.click({ force: true });
   const manualCode = page.getByPlaceholder('Type barcode or article code');
+  await manualCode.waitFor();
   check('Scan step has manual fallback', await manualCode.isVisible());
   await manualCode.fill('8904123001018');
   await page.getByRole('button', { name: 'Continue', exact: true }).click({ force: true });
@@ -167,6 +170,13 @@ await inspect('plants-list', '/master-data/plants', { width: 1280, height: 800 }
   await page.getByRole('heading', { name: 'Edit plant' }).waitFor();
   check('Plant edit reuses modal', await page.getByRole('heading', { name: 'Edit plant' }).isVisible());
   await page.locator('app-modal').getByRole('button', { name: 'Cancel' }).click();
+  const deletePlantButton = page.getByRole('button', { name: 'Delete plant' }).first();
+  await deletePlantButton.click();
+  await page.getByRole('dialog').waitFor();
+  check('Destructive actions use an accessible confirmation dialog', await page.getByRole('heading', { name: /Delete .* Plant/i }).isVisible());
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.waitForTimeout(75);
+  check('Modal returns focus to its trigger', await deletePlantButton.evaluate((button) => document.activeElement === button));
 });
 
 await inspect('plant-modal-mobile', '/master-data/plants', { width: 390, height: 844 }, async (page) => {
@@ -197,7 +207,14 @@ await inspect('users-list', '/master-data/users', { width: 1280, height: 800 }, 
 
 await inspect('orders-desktop', '/master-data/orders', { width: 1366, height: 800 }, async (page) => {
   check('Orders contain 8,000 historical records', (await page.locator('app-pagination').innerText()).includes('8000'));
+  await page.getByRole('button', { name: 'Add order' }).click();
+  await page.getByRole('dialog').waitFor();
+  check('Add order opens in a modal', await page.getByRole('heading', { name: 'Add order' }).isVisible());
+  await page.keyboard.press('Escape');
+  await page.getByRole('dialog').waitFor({ state: 'detached' });
   await page.getByRole('button', { name: 'Open order' }).first().click();
+  await page.getByRole('dialog').waitFor();
+  check('Edit order opens in a modal', await page.getByRole('heading', { name: 'Edit order' }).isVisible());
   await page.locator('app-search-select[formcontrolname="status"]').getByRole('combobox').click();
   await page.getByRole('option', { name: /^In Production$/i }).click();
   await page.getByRole('button', { name: 'Save changes' }).click();
@@ -213,6 +230,16 @@ for (const [name, path] of [
     check(`${name} has standard pagination`, await page.locator('app-pagination').count() === 1);
     const expectedTotal = name === 'inventory-list' ? '2500' : '12000';
     check(`${name} exposes the full historical dataset`, (await page.locator('app-pagination').innerText()).includes(expectedTotal), expectedTotal);
+    if (name === 'inventory-list') {
+      await page.getByRole('button', { name: 'Add stock record' }).click();
+      await page.getByRole('dialog').waitFor();
+      check('Add stock record opens in a modal', await page.getByRole('heading', { name: 'Add stock record' }).isVisible());
+      await page.keyboard.press('Escape');
+      await page.getByRole('dialog').waitFor({ state: 'detached' });
+      await page.getByRole('button', { name: 'Edit stock record' }).first().click();
+      await page.getByRole('dialog').waitFor();
+      check('Edit stock record opens in a modal', await page.getByRole('heading', { name: 'Edit stock record' }).isVisible());
+    }
   });
 }
 
@@ -224,6 +251,14 @@ await inspect('reports', '/reports', { width: 1280, height: 800 }, async (page) 
   const filteredOptionCount = await plantFilter.getByRole('option').count();
   check('Plant filter dropdown is searchable', filteredOptionCount === 2, String(filteredOptionCount));
   await page.keyboard.press('Escape');
+  await page.getByRole('tab', { name: /Article-wise Sales/ }).click();
+  await page.getByRole('columnheader', { name: 'Orders' }).waitFor();
+  const allArticleRows = await page.locator('app-pagination').innerText();
+  await chooseMenuOption(page, 'Filter report by product category', 'Seat covers');
+  await page.waitForTimeout(100);
+  const seatCoverRows = await page.locator('app-pagination').innerText();
+  check('Report product category filter changes the dataset', allArticleRows.includes('300') && seatCoverRows.includes('75'), `${allArticleRows} -> ${seatCoverRows}`);
+  await chooseMenuOption(page, 'Filter report by product category', 'All product categories');
   for (const report of ['Plant-wise Production', 'Article-wise Sales', 'Profitability', 'Customer-wise Sales', 'Inventory Aging']) {
     await page.getByRole('tab', { name: new RegExp(report) }).click();
     const count = await page.locator('.report-table tbody tr').count();

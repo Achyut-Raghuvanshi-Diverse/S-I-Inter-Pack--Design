@@ -1,16 +1,19 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import {
   LucideArrowUpDown, LucideBox,
   LucideDownload, LucidePencil, LucidePlus, LucideRefreshCw, LucideSearch, LucideTrash2,
 } from '@lucide/angular';
 import { DataStore } from '../../core/data.store';
+import { ConfirmService } from '../../core/confirm.service';
+import { CsvExportService } from '../../core/csv-export.service';
 import { AppUser, Customer, InventoryItem, Order } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 import { Modal } from '../../shared/modal/modal';
 import { Pagination } from '../../shared/pagination/pagination';
 import { SearchSelect } from '../../shared/search-select/search-select';
+import { ControlStateDirective } from '../../shared/control-state.directive';
 
 type EntityKind = 'customers' | 'orders' | 'inventory' | 'users';
 type BusinessItem = Customer | Order | InventoryItem | AppUser;
@@ -24,18 +27,21 @@ const META: Record<EntityKind, { eyebrow: string; title: string; description: st
 
 @Component({
   selector: 'app-business-master',
-  imports: [ReactiveFormsModule, Modal, Pagination, SearchSelect, LucideArrowUpDown, LucideBox, LucideDownload, LucidePencil, LucidePlus, LucideRefreshCw, LucideSearch, LucideTrash2],
+  imports: [ReactiveFormsModule, ControlStateDirective, Modal, Pagination, SearchSelect, LucideArrowUpDown, LucideBox, LucideDownload, LucidePencil, LucidePlus, LucideRefreshCw, LucideSearch, LucideTrash2],
   templateUrl: './business-master.html',
   styleUrls: ['./master-data.scss', './business-master.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BusinessMaster {
   readonly data = inject(DataStore);
   readonly toast = inject(ToastService);
+  private readonly confirm = inject(ConfirmService);
+  private readonly csv = inject(CsvExportService);
   private readonly route = inject(ActivatedRoute);
-  private readonly fb = inject(FormBuilder);
+  private readonly fb = inject(NonNullableFormBuilder);
   readonly kind = this.route.snapshot.data['entity'] as EntityKind;
   readonly meta = META[this.kind];
-  readonly usesModal = this.kind === 'customers' || this.kind === 'users';
+  readonly usesModal = true;
   readonly view = signal<'list' | 'edit'>('list');
   readonly editingId = signal<number | null>(null);
   readonly search = signal('');
@@ -78,8 +84,11 @@ export class BusinessMaster {
     });
   });
   readonly pages = computed(() => Math.max(1, Math.ceil(this.filtered().length / this.pageSize)));
-  readonly pageNumbers = computed(() => Array.from({ length: this.pages() }, (_, index) => index + 1));
   readonly paged = computed(() => this.filtered().slice((this.page() - 1) * this.pageSize, this.page() * this.pageSize));
+  readonly pagedCustomers = computed(() => this.paged().filter((item): item is Customer => 'gstin' in item));
+  readonly pagedOrders = computed(() => this.paged().filter((item): item is Order => 'poNumber' in item));
+  readonly pagedInventory = computed(() => this.paged().filter((item): item is InventoryItem => 'reorderLevel' in item));
+  readonly pagedUsers = computed(() => this.paged().filter((item): item is AppUser => 'employeeCode' in item));
 
   constructor() { this.search.set(this.route.snapshot.queryParamMap.get('q') ?? ''); this.plantScope.set(Number(this.route.snapshot.queryParamMap.get('plant')) || null); }
 
@@ -92,10 +101,7 @@ export class BusinessMaster {
   updateSearch(event: Event): void { this.search.set((event.target as HTMLInputElement).value); this.page.set(1); }
   updateStatusValue(value: string | number | null): void { this.statusFilter.set(String(value)); this.page.set(1); }
   sort(): void { this.ascending.update((value) => !value); }
-  previousPage(): void { this.page.set(Math.max(1, this.page() - 1)); }
-  nextPage(): void { this.page.set(Math.min(this.pages(), this.page() + 1)); }
-  clearPlantScope(): void { this.plantScope.set(null); }
-  maxShown(): number { return Math.min(this.page() * this.pageSize, this.filtered().length); }
+  clearPlantScope(): void { this.plantScope.set(null); this.page.set(1); }
 
   create(): void { this.editingId.set(null); this.form.reset(this.defaults()); this.view.set('edit'); }
   edit(item: BusinessItem): void { this.editingId.set(item.id); this.form.reset(item as never); this.view.set('edit'); }
@@ -113,12 +119,14 @@ export class BusinessMaster {
       this.toast.success(`${this.meta.singular[0].toUpperCase()}${this.meta.singular.slice(1)} saved`, `${this.primaryLabel(value as unknown as BusinessItem)} is now visible in the ${this.meta.title.toLowerCase()} list.`);
     }, 260);
   }
-  remove(item: BusinessItem): void {
-    if (!confirm(`Delete ${this.primaryLabel(item)}? This cannot be undone.`)) return;
+  async remove(item: BusinessItem): Promise<void> {
+    const confirmed = await this.confirm.confirm({ title: `Delete ${this.primaryLabel(item)}?`, message: `This ${this.meta.singular} will be permanently removed from ${this.meta.title.toLowerCase()}.`, confirmLabel: `Delete ${this.meta.singular}`, eyebrow: this.meta.eyebrow, tone: 'danger' });
+    if (!confirmed) return;
     if (this.kind === 'customers') this.data.deleteCustomer(item.id);
     if (this.kind === 'orders') this.data.deleteOrder(item.id);
     if (this.kind === 'inventory') this.data.deleteInventory(item.id);
     if (this.kind === 'users') this.data.deleteUser(item.id);
+    this.page.set(Math.min(this.page(), this.pages()));
     this.toast.success(`${this.meta.singular[0].toUpperCase()}${this.meta.singular.slice(1)} deleted`, `${this.primaryLabel(item)} was removed.`);
   }
 
@@ -143,8 +151,7 @@ export class BusinessMaster {
 
   exportCsv(): void {
     const rows = this.filtered().map((item) => [item.id, this.primaryLabel(item), this.searchText(item), this.itemStatus(item)]);
-    const csv = [['ID', 'Record', 'Details', 'Status'], ...rows].map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\r\n');
-    const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); link.download = `si-inter-pack-${this.kind}.csv`; link.click(); URL.revokeObjectURL(link.href);
+    this.csv.download(`si-inter-pack-${this.kind}.csv`, [['ID', 'Record', 'Details', 'Status'], ...rows]);
     this.toast.success('Export ready', `${this.filtered().length} ${this.meta.title.toLowerCase()} records were exported.`);
   }
 

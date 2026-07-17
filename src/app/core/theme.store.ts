@@ -7,7 +7,8 @@ export type ThemeMode = 'light' | 'dark';
 export class ThemeStore {
   private readonly document = inject(DOCUMENT);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
-  readonly mode = signal<ThemeMode>(this.initialMode());
+  private readonly modeState = signal<ThemeMode>(this.initialMode());
+  readonly mode = this.modeState.asReadonly();
 
   constructor() {
     effect(() => {
@@ -18,7 +19,7 @@ export class ThemeStore {
     });
   }
 
-  toggle(): void { this.mode.update((mode) => mode === 'light' ? 'dark' : 'light'); }
+  toggle(): void { this.modeState.update((mode) => mode === 'light' ? 'dark' : 'light'); }
 
   private initialMode(): ThemeMode {
     if (!this.isBrowser) return 'light';

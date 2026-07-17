@@ -11,10 +11,10 @@
     <span class="spacer"></span><button class="btn btn-secondary" type="button" (click)="exportCsv()"><svg lucideDownload size="15"></svg> Export CSV</button>
   </div>
   @if (paged().length) {
-    <div class="data-table-wrap"><table class="data-table"><thead><tr>
+    <div class="data-table-wrap" tabindex="0" aria-label="Scrollable plant records table"><table class="data-table"><caption class="sr-only">Plant master records</caption><thead><tr>
       <th><input type="checkbox" aria-label="Select page" [checked]="selected().length === paged().length" (change)="toggleAll()" /></th>
-      <th><button class="sort-button" type="button" (click)="sort('code')">Plant code <svg lucideArrowUpDown size="12"></svg></button></th>
-      <th><button class="sort-button" type="button" (click)="sort('name')">Facility <svg lucideArrowUpDown size="12"></svg></button></th>
+      <th [attr.aria-sort]="ariaSort('code')"><button class="sort-button" type="button" (click)="sort('code')">Plant code <svg lucideArrowUpDown size="12"></svg></button></th>
+      <th [attr.aria-sort]="ariaSort('name')"><button class="sort-button" type="button" (click)="sort('name')">Facility <svg lucideArrowUpDown size="12"></svg></button></th>
       <th>Plant head</th><th class="numeric">Capacity / month</th><th>Utilisation</th><th>Status</th><th aria-label="Actions"></th>
     </tr></thead><tbody>
       @for (plant of paged(); track plant.id) { <tr>

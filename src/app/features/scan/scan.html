@@ -51,10 +51,10 @@
             <span class="camera-icon"><svg lucideScanBarcode size="42"></svg></span><strong>Open barcode scanner</strong><small>Point the camera at the product label</small><span class="camera-action"><svg lucideCamera size="17"></svg> Start scanning</span>
           </button>
         }
-        @if (cameraError()) { <div class="inline-error"><svg lucideCircleAlert size="17"></svg>{{ cameraError() }}</div> }
+        @if (cameraError()) { <div class="inline-error" role="alert"><svg lucideCircleAlert size="17"></svg>{{ cameraError() }}</div> }
         <div class="divider"><span>Barcode not working?</span></div>
         <label class="manual-code"><span><svg lucideKeyboard size="17"></svg> Enter barcode or article code</span><div><input [value]="articleCode()" (input)="updateCode($event)" (keydown.enter)="goToConfirm()" placeholder="Type barcode or article code" autocomplete="off" /><button type="button" [disabled]="!articleCode().trim()" (click)="goToConfirm()">Continue</button></div></label>
-        @if (result()?.type === 'error') { <div class="inline-error"><svg lucideCircleAlert size="17"></svg>{{ result()!.message }}</div> }
+        @if (result()?.type === 'error') { <div class="inline-error" role="alert"><svg lucideCircleAlert size="17"></svg>{{ result()!.message }}</div> }
         <div class="scan-note"><svg lucideCheck size="17"></svg><span>Scanning or manual entry fills in the product automatically. You will only need to confirm it.</span></div>
       }
 
@@ -63,7 +63,7 @@
         <div class="step-title"><span>Step 3 of 3</span><h3>Confirm this barcode</h3><p>Check the product and plant, then save. There are no fields to edit.</p></div>
         <div class="confirm-article"><span class="article-token">{{ foundArticle()!.code.slice(4, 7) }}</span><div><strong>{{ foundArticle()!.modelName }}</strong><span>{{ foundArticle()!.code }} · {{ foundArticle()!.segment }}</span></div><span class="badge violet">{{ entrySource() }}</span></div>
         <dl class="scan-summary"><div><dt>Plant</dt><dd>{{ plantName() }}</dd></div><div><dt>Barcode</dt><dd>{{ foundArticle()!.barcode }}</dd></div><div><dt>Entry method</dt><dd>{{ entrySource() }}</dd></div></dl>
-        @if (result()?.type === 'error') { <div class="inline-error"><svg lucideCircleAlert size="17"></svg>{{ result()!.message }}</div> }
+        @if (result()?.type === 'error') { <div class="inline-error" role="alert"><svg lucideCircleAlert size="17"></svg>{{ result()!.message }}</div> }
         <button class="scan-primary submit-scan" type="button" (click)="submit()"><svg lucideCheck size="23"></svg> Confirm & save</button>
       }
 
