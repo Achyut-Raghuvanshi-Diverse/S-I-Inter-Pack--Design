@@ -60,11 +60,13 @@
           <button class="icon-btn notification" type="button" aria-label="Notifications" [attr.aria-expanded]="notificationsOpen()" (click)="toggleNotifications()"><svg lucideBell size="18"></svg>@if (unreadNotifications()) { <span class="notification-count">{{ unreadNotifications() }}</span> }</button>
         </div>
         <div class="user-control">
-          <button class="user-trigger" type="button" role="combobox" aria-haspopup="listbox" aria-label="Switch demo role" [attr.aria-expanded]="roleMenuOpen()" (click)="toggleRoleMenu()"><div class="avatar-wrap"><div class="avatar">{{ auth.initials() }}</div><i></i></div><div class="user-copy"><strong>{{ auth.userName() }}</strong><span>{{ auth.role() }}</span></div><span class="user-chevron"><svg lucideChevronDown size="14"></svg></span></button>
+          <button class="user-trigger" type="button" aria-haspopup="menu" aria-label="Open account menu" [attr.aria-expanded]="roleMenuOpen()" (click)="toggleRoleMenu()"><div class="avatar-wrap"><div class="avatar">{{ auth.initials() }}</div><i></i></div><div class="user-copy"><strong>{{ auth.userName() }}</strong><span>{{ auth.role() }}</span></div><span class="user-chevron"><svg lucideChevronDown size="14"></svg></span></button>
           @if (roleMenuOpen()) {
-            <div class="role-menu" role="listbox" aria-label="Switch demo role" (keydown)="roleMenuKeydown($event)">
-              <div class="role-menu-head"><strong>Switch workspace</strong><span>Choose the view you want to preview</span></div>
-              <div class="role-options">@for (option of roleOptions; track option.role) { <button type="button" role="option" [class.selected]="auth.role() === option.role" [attr.aria-selected]="auth.role() === option.role" (click)="chooseRole(option.role)"><span class="role-token">{{ option.token }}</span><span class="role-copy"><strong>{{ option.role }}</strong><small>{{ option.description }}</small></span>@if (auth.role() === option.role) { <span class="role-check"><svg lucideCheck size="14"></svg></span> }</button> }</div>
+            <div class="role-menu" role="menu" aria-label="Account menu" (keydown)="roleMenuKeydown($event)">
+              <div class="role-menu-head"><strong>{{ auth.userName() }}</strong><span>{{ auth.userEmail() }}</span><small>{{ auth.employeeCode() }}</small></div>
+              <p class="role-menu-label">Switch demo workspace</p>
+              <div class="role-options">@for (option of roleOptions; track option.role) { <button type="button" role="menuitemradio" [class.selected]="auth.role() === option.role" [attr.aria-checked]="auth.role() === option.role" (click)="chooseRole(option.role)"><span class="role-token">{{ option.token }}</span><span class="role-copy"><strong>{{ option.role }}</strong><small>{{ option.description }}</small></span>@if (auth.role() === option.role) { <span class="role-check"><svg lucideCheck size="14"></svg></span> }</button> }</div>
+              <div class="role-menu-footer"><button type="button" role="menuitem" (click)="signOut()"><span><svg lucideLogOut size="16"></svg></span><span><strong>Sign out</strong><small>End this demo session securely</small></span></button></div>
             </div>
           }
         </div>

@@ -9,7 +9,15 @@ npm install
 npm start
 ```
 
-Open `http://localhost:4200`. Use the role selector in the top-right user control to switch between Corporate Admin, Plant Operator and Sales views.
+Open `http://localhost:4200` and sign in with one of the selectable demo profiles. The account menu also supports workspace switching and secure sign-out.
+
+## Demo accounts
+
+| Workspace | Email | Password |
+| --- | --- | --- |
+| Corporate Admin | `aditya.mehra@siinterpack.in` | `Admin@2026` |
+| Plant Operator | `rakesh.yadav@siinterpack.in` | `Plant@2026` |
+| Sales | `nidhi.mehta@siinterpack.in` | `Sales@2026` |
 
 ## Included workflows
 
@@ -31,7 +39,7 @@ Open `http://localhost:4200`. Use the role selector in the top-right user contro
 - Memoized entity lookup maps so records remain correct when IDs are non-contiguous
 - Shared accessible modal, confirmation, searchable select, pagination, validation-state and CSV export utilities
 - Typed ApexCharts configuration with a shared chart theme and aggregated reporting data
-- Role and plant-scope route guards, descriptive route titles and restored scroll position
+- Session, role and plant-scope route guards, descriptive route titles and restored scroll position
 - Keyboard-accessible navigation, dialogs, tables and dropdowns with reduced-motion support
 
 ## Verification

@@ -14,6 +14,7 @@ import {
   LucideFileChartColumn,
   LucideHandshake,
   LucideLayoutDashboard,
+  LucideLogOut,
   LucideMenu,
   LucideMoon,
   LucidePanelLeftClose,
@@ -41,7 +42,7 @@ import { ConfirmOutlet } from './confirm-outlet';
   selector: 'app-shell',
   imports: [
     RouterOutlet, RouterLink, RouterLinkActive, ToastOutlet, ConfirmOutlet, LucideArrowRight, LucideBell, LucideBoxes, LucideCheck, LucideChevronDown,
-    LucideClipboardList, LucideDatabase, LucideFactory, LucideFileChartColumn, LucideHandshake, LucideLayoutDashboard, LucideMenu, LucideMoon,
+    LucideClipboardList, LucideDatabase, LucideFactory, LucideFileChartColumn, LucideHandshake, LucideLayoutDashboard, LucideLogOut, LucideMenu, LucideMoon,
     LucidePanelLeftClose, LucidePanelLeftOpen, LucideScanLine, LucideSearch, LucideShoppingCart, LucideSun, LucideTruck, LucideUsers, LucideWarehouse, LucideWifi, LucideWifiOff, LucideX,
   ],
   templateUrl: './app-shell.html',
@@ -60,11 +61,7 @@ export class AppShell {
   readonly notificationsOpen = signal(false);
   readonly notificationsRead = signal(false);
   readonly roleMenuOpen = signal(false);
-  readonly roleOptions: { role: UserRole; description: string; token: string }[] = [
-    { role: 'Corporate Admin', description: 'All plants, records and settings', token: 'CA' },
-    { role: 'Plant Operator', description: 'Assigned plant scanning workspace', token: 'PO' },
-    { role: 'Sales', description: 'Orders, dispatch and reports', token: 'SA' },
-  ];
+  readonly roleOptions = this.auth.demoAccounts;
   private readonly navigation = toSignal(this.router.events, { initialValue: null });
   readonly today = new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).format(new Date());
   readonly unreadNotifications = computed(() => this.notificationsRead() ? 0 : 3);
@@ -86,7 +83,7 @@ export class AppShell {
   });
 
   chooseRole(role: UserRole): void {
-    this.auth.setRole(role);
+    this.auth.switchRole(role);
     this.roleMenuOpen.set(false);
     this.router.navigateByUrl(role === 'Plant Operator' ? '/plant/dashboard' : role === 'Sales' ? '/master-data/orders' : '/dashboard');
   }
@@ -96,7 +93,7 @@ export class AppShell {
   roleMenuKeydown(event: KeyboardEvent): void {
     if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
     event.preventDefault();
-    const options = [...(event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>('[role="option"]')];
+    const options = [...(event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>('button:not([disabled])')];
     if (!options.length) return;
     const current = options.indexOf(this.document.activeElement as HTMLButtonElement);
     const next = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1 : event.key === 'ArrowDown' ? (current + 1) % options.length : (current - 1 + options.length) % options.length;
@@ -126,9 +123,9 @@ export class AppShell {
   openNotification(path: string): void { this.notificationsOpen.set(false); this.router.navigateByUrl(path); }
   markNotificationsRead(): void { this.notificationsRead.set(true); this.toast.success('Notifications cleared', 'All current updates were marked as read.'); }
   signOut(): void {
-    this.auth.setRole('Corporate Admin');
-    this.router.navigateByUrl('/dashboard');
-    this.toast.success('Demo session reset', 'Returned to the Corporate Admin demonstration account.');
+    this.auth.logout();
+    this.roleMenuOpen.set(false);
+    this.router.navigate(['/login'], { queryParams: { signedOut: true } });
   }
 
   @HostListener('document:mousedown', ['$event'])

@@ -1,0 +1,100 @@
+<main class="login-page">
+  <section class="login-visual" aria-labelledby="welcome-title">
+    <header class="login-brand">
+      <span class="brand-symbol"><img src="si-logo.svg" alt="" /></span>
+      <span><strong>SI INTER PACK</strong><small>Operations intelligence</small></span>
+    </header>
+
+    <div class="visual-copy">
+      <span class="visual-eyebrow"><i></i> Unified plant operations</span>
+      <h1 id="welcome-title">Every plant movement.<br /><em>One clear view.</em></h1>
+      <p>Scan products, monitor inventory and keep corporate teams connected to every plant floor in real time.</p>
+      <div class="feature-list" aria-label="Application capabilities">
+        <span><svg lucideScanLine size="18"></svg> Barcode tracking</span>
+        <span><svg lucideFactory size="18"></svg> Plant visibility</span>
+        <span><svg lucideBarChart3 size="18"></svg> Live reporting</span>
+      </div>
+    </div>
+
+    <div class="visual-status">
+      <div><span class="pulse"><i></i></span><p><strong>12 plants connected</strong><small>All systems operational</small></p></div>
+      <span class="secure-note"><svg lucideShieldCheck size="17"></svg> Secure demo environment</span>
+    </div>
+  </section>
+
+  <section class="login-workspace" aria-label="Account sign in">
+    <div class="login-card">
+      <div class="login-heading">
+        <span class="mobile-logo"><img src="si-logo.svg" alt="SI Inter Pack" /></span>
+        <div class="heading-meta"><p>Welcome back</p><span><svg lucideShieldCheck size="14"></svg>Protected demo access</span></div>
+        <h2>Sign in to Operations</h2>
+        <span>Choose a workspace or enter the matching demo credentials.</span>
+      </div>
+
+      @if (signedOut) {
+        <div class="session-message" role="status"><svg lucideCheck size="15"></svg><span>You have been signed out securely.</span></div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="login-field">
+          <label for="login-email">Email address</label>
+          <div [class.invalid]="form.controls.email.touched && form.controls.email.invalid">
+            <svg lucideMail size="17"></svg>
+            <input id="login-email" formControlName="email" type="email" autocomplete="username" placeholder="name@siinterpack.in" aria-describedby="email-error" />
+          </div>
+          @if (form.controls.email.touched && form.controls.email.invalid) {
+            <small id="email-error" class="field-error">Enter a valid email address.</small>
+          }
+        </div>
+
+        <div class="login-field">
+          <label for="login-password">Password</label>
+          <div [class.invalid]="form.controls.password.touched && form.controls.password.invalid">
+            <svg lucideLockKeyhole size="17"></svg>
+            <input id="login-password" formControlName="password" [type]="passwordVisible() ? 'text' : 'password'" autocomplete="current-password" placeholder="Enter your password" aria-describedby="password-error" />
+            <button class="password-toggle" type="button" [attr.aria-label]="passwordVisible() ? 'Hide password' : 'Show password'" (click)="togglePasswordVisibility()">
+              @if (passwordVisible()) { <svg lucideEyeOff size="17"></svg> } @else { <svg lucideEye size="17"></svg> }
+            </button>
+          </div>
+          @if (form.controls.password.touched && form.controls.password.invalid) {
+            <small id="password-error" class="field-error">Enter your password.</small>
+          }
+        </div>
+
+        @if (errorMessage()) {
+          <div class="login-error" role="alert">{{ errorMessage() }}</div>
+        }
+
+        <button class="sign-in-button" type="submit">
+          <span>Sign in securely</span><svg lucideArrowRight size="18"></svg>
+        </button>
+      </form>
+
+      <div class="demo-divider"><span>Quick workspace access</span></div>
+      <p class="demo-help">Select an account and its credentials will be filled automatically.</p>
+
+      <div class="demo-accounts">
+        @for (account of auth.demoAccounts; track account.email) {
+          <button
+            type="button"
+            class="demo-account"
+            [class.selected]="form.controls.email.value === account.email"
+            [attr.aria-pressed]="form.controls.email.value === account.email"
+            [attr.aria-label]="'Use ' + account.role + ' demo account'"
+            (click)="selectAccount(account)"
+          >
+            <span class="account-avatar">{{ account.token }}</span>
+            <span class="account-copy">
+              <span><strong>{{ account.role }}</strong><em>{{ account.name }}</em></span>
+              <small>{{ account.email }}</small>
+              <code>{{ account.password }}</code>
+            </span>
+            <span class="account-select">@if (form.controls.email.value === account.email) { <svg lucideCheck size="14"></svg><span>Selected</span> } @else { <span>Use account</span> }</span>
+          </button>
+        }
+      </div>
+
+      <footer>Demo access only <i></i> SI Inter Pack Operations Suite</footer>
+    </div>
+  </section>
+</main>

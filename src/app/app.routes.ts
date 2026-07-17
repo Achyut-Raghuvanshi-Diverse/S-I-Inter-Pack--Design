@@ -1,10 +1,18 @@
 import { Routes } from '@angular/router';
-import { plantScopeGuard, roleGuard } from './core/role.guard';
+import { authGuard, guestGuard, plantScopeGuard, roleGuard } from './core/role.guard';
 
 export const routes: Routes = [
   {
+    path: 'login',
+    title: 'Sign in | SI Inter Pack',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./features/auth/login').then((m) => m.Login),
+  },
+  {
     path: '',
     loadComponent: () => import('./layout/app-shell').then((m) => m.AppShell),
+    canActivate: [authGuard],
+    canActivateChild: [authGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       { path: 'dashboard', title: 'Corporate Dashboard | SI Inter Pack', canActivate: [roleGuard], data: { roles: ['Corporate Admin'] }, loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard) },

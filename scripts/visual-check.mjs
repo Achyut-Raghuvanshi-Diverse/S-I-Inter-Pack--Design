@@ -17,8 +17,15 @@ async function chooseMenuOption(page, comboboxName, optionName) {
   await page.waitForTimeout(75);
 }
 
+async function chooseDemoRole(page, optionName) {
+  await page.getByRole('button', { name: 'Open account menu' }).click();
+  await page.getByRole('menuitemradio', { name: new RegExp(optionName, 'i') }).click();
+  await page.waitForTimeout(75);
+}
+
 async function inspect(name, path, viewport, action) {
   const page = await browser.newPage({ viewport });
+  await page.addInitScript(() => sessionStorage.setItem('si-demo-session', 'aditya.mehra@siinterpack.in'));
   page.on('console', (message) => { if (message.type() === 'error') errors.push(`${name}: ${message.text()}`); });
   page.on('pageerror', (error) => errors.push(`${name}: ${error.message}`));
   await page.goto(`${appUrl}${path}`, { waitUntil: 'networkidle' });
@@ -30,6 +37,42 @@ async function inspect(name, path, viewport, action) {
   results.push({ name, ...dimensions, overflow: dimensions.document > dimensions.viewport });
   await page.close();
 }
+
+const loginPage = await browser.newPage({ viewport: { width: 1920, height: 912 } });
+loginPage.on('pageerror', (error) => errors.push(`login: ${error.message}`));
+await loginPage.goto(`${appUrl}/dashboard`, { waitUntil: 'networkidle' });
+check('Protected routes redirect to login', loginPage.url().includes('/login?returnUrl='));
+check('Login exposes three selectable demo accounts', await loginPage.locator('.demo-account').count() === 3);
+await loginPage.screenshot({ path: 'artifacts/login-desktop.png', fullPage: true });
+const loginLayout = await loginPage.evaluate(() => ({ viewportHeight: innerHeight, documentHeight: document.documentElement.scrollHeight, footerBottom: Math.round(document.querySelector('.login-card footer')?.getBoundingClientRect().bottom ?? 9999) }));
+check('Login fits desktop without a page scroller', loginLayout.documentHeight <= loginLayout.viewportHeight && loginLayout.footerBottom <= loginLayout.viewportHeight, JSON.stringify(loginLayout));
+check('Login does not expose a theme toggle', await loginPage.locator('.login-theme').count() === 0);
+await loginPage.locator('#login-email').fill('unknown@siinterpack.in');
+await loginPage.locator('#login-password').fill('Incorrect');
+await loginPage.getByRole('button', { name: 'Sign in securely' }).click();
+await loginPage.locator('.login-error').waitFor();
+check('Invalid login shows an accessible error', await loginPage.getByRole('alert').isVisible());
+await loginPage.getByRole('button', { name: 'Use Plant Operator demo account' }).click();
+check('Demo account fills credentials', await loginPage.locator('#login-email').inputValue() === 'rakesh.yadav@siinterpack.in' && await loginPage.locator('#login-password').inputValue() === 'Plant@2026');
+await loginPage.getByRole('button', { name: 'Sign in securely' }).click();
+await loginPage.waitForURL(/plant\/dashboard$/);
+check('Demo login opens role landing page', loginPage.url().endsWith('/plant/dashboard'));
+await loginPage.locator('.theme-toggle').click();
+await loginPage.getByRole('button', { name: 'Open account menu' }).click();
+await loginPage.getByRole('menuitem', { name: /Sign out/i }).click();
+await loginPage.waitForURL(/login\?signedOut=true/);
+await loginPage.locator('.session-message').waitFor();
+check('Sign out clears the session', await loginPage.locator('.session-message').isVisible());
+const loginTheme = await loginPage.locator('.login-page').evaluate((element) => ({ colorScheme: getComputedStyle(element).colorScheme, surface: getComputedStyle(element).getPropertyValue('--surface-page').trim() }));
+check('Login remains light after signing out from dark mode', loginTheme.colorScheme === 'light' && loginTheme.surface === '#f5f6fa', JSON.stringify(loginTheme));
+await loginPage.close();
+
+const mobileLoginPage = await browser.newPage({ viewport: { width: 390, height: 844 } });
+await mobileLoginPage.goto(`${appUrl}/login`, { waitUntil: 'networkidle' });
+await mobileLoginPage.screenshot({ path: 'artifacts/login-mobile.png', fullPage: true });
+const mobileLoginWidth = await mobileLoginPage.evaluate(() => ({ viewport: innerWidth, document: document.documentElement.scrollWidth }));
+check('Login is responsive on mobile', mobileLoginWidth.document <= mobileLoginWidth.viewport && await mobileLoginPage.locator('.demo-account').count() === 3, JSON.stringify(mobileLoginWidth));
+await mobileLoginPage.close();
 
 await inspect('corporate-overview', '/dashboard', { width: 1440, height: 900 }, async (page) => {
   await page.waitForTimeout(500);
@@ -52,9 +95,9 @@ await inspect('theme-dark-collapsed', '/dashboard', { width: 1440, height: 900 }
 });
 
 await inspect('role-menu-desktop', '/dashboard', { width: 1280, height: 800 }, async (page) => {
-  await page.getByRole('combobox', { name: 'Switch demo role' }).click();
+  await page.getByRole('button', { name: 'Open account menu' }).click();
   await page.waitForTimeout(75);
-  check('Role switcher uses custom menu', await page.locator('.role-menu').isVisible() && await page.getByRole('option', { name: /Plant Operator/i }).isVisible());
+  check('Account menu exposes workspace switching and logout', await page.locator('.role-menu').isVisible() && await page.getByRole('menuitemradio', { name: /Plant Operator/i }).isVisible() && await page.getByRole('menuitem', { name: /Sign out/i }).isVisible());
 });
 
 await inspect('notifications-desktop', '/dashboard', { width: 1280, height: 800 }, async (page) => {
@@ -273,9 +316,10 @@ await inspect('reports', '/reports', { width: 1280, height: 800 }, async (page) 
 });
 
 const rolePage = await browser.newPage({ viewport: { width: 768, height: 1024 } });
+await rolePage.addInitScript(() => sessionStorage.setItem('si-demo-session', 'aditya.mehra@siinterpack.in'));
 rolePage.on('pageerror', (error) => errors.push(`roles: ${error.message}`));
 await rolePage.goto(`${appUrl}/dashboard`, { waitUntil: 'networkidle' });
-await chooseMenuOption(rolePage, 'Switch demo role', 'Plant Operator');
+await chooseDemoRole(rolePage, 'Plant Operator');
 await rolePage.waitForURL(/plant\/dashboard$/);
 check('Plant Operator lands on My Plant', rolePage.url().endsWith('/plant/dashboard'));
 check('Plant Operator nav has three work links', await rolePage.locator('.nav-list a').count() === 3);
@@ -293,7 +337,7 @@ await rolePage.waitForURL(/barcode-records$/);
 await rolePage.getByText('My plant records').waitFor();
 check('Operator barcode records are plant locked', await rolePage.getByRole('combobox', { name: 'Filter barcode records by plant' }).count() === 0 && !(await rolePage.locator('body').innerText()).includes('Pune Plant'));
 
-await chooseMenuOption(rolePage, 'Switch demo role', 'Sales');
+await chooseDemoRole(rolePage, 'Sales');
 await rolePage.waitForURL(/master-data\/orders/);
 check('Sales lands on purchase orders', rolePage.url().includes('/master-data/orders'));
 check('Sales tailored nav', await rolePage.locator('.nav-list a').count() === 6);

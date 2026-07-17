@@ -3,13 +3,26 @@ import { CanActivateFn, Router } from '@angular/router';
 import { AuthStore } from './auth.store';
 import { UserRole } from './models';
 
+export const authGuard: CanActivateFn = (_route, state) => {
+  const auth = inject(AuthStore);
+  const router = inject(Router);
+  return auth.isAuthenticated()
+    ? true
+    : router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
+};
+
+export const guestGuard: CanActivateFn = () => {
+  const auth = inject(AuthStore);
+  const router = inject(Router);
+  return auth.isAuthenticated() ? router.createUrlTree([auth.landingUrl()]) : true;
+};
+
 export const roleGuard: CanActivateFn = (route) => {
   const auth = inject(AuthStore);
   const router = inject(Router);
   const allowed = (route.data['roles'] as UserRole[] | undefined) ?? [];
   if (!allowed.length || allowed.includes(auth.role())) return true;
-  const landingPage = auth.role() === 'Plant Operator' ? '/plant/dashboard' : auth.role() === 'Sales' ? '/master-data/orders' : '/dashboard';
-  return router.createUrlTree([landingPage]);
+  return router.createUrlTree([auth.landingUrl()]);
 };
 
 export const plantScopeGuard: CanActivateFn = (route) => {
