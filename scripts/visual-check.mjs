@@ -36,7 +36,7 @@ await inspect('theme-dark-collapsed', '/dashboard', { width: 1440, height: 900 }
   check('Theme toggle changes mode', before !== changed, `${before} -> ${changed}`);
   await page.reload({ waitUntil: 'networkidle' });
   check('Theme preference persists', await page.locator('html').getAttribute('data-theme') === changed);
-  await page.locator('.collapse-nav').click();
+  await page.locator('.desktop-sidebar-toggle').click();
   await page.waitForTimeout(300);
   const shellState = await page.evaluate(() => ({ collapsed: document.querySelector('.app-frame')?.classList.contains('sidebar-collapsed'), sidebarWidth: document.querySelector('.sidebar')?.getBoundingClientRect().width ?? 999 }));
   check('Sidebar collapses smoothly', !!shellState.collapsed && shellState.sidebarWidth < 100, JSON.stringify(shellState));
