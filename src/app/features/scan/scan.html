@@ -80,18 +80,28 @@
   </section>
 
   <aside class="recent-panel panel" id="recent">
-    <div class="panel-head"><div><h3>Recent scans</h3><p>Latest saved barcodes on this device</p></div><a class="all-records-link" routerLink="/barcode-records">View all</a></div>
-    <div class="recent-list">
+    <div class="panel-head recent-head">
+      <div class="recent-heading">
+        <span class="live-kicker"><i></i>Live activity</span>
+        <h3>Recent scans <b>{{ recentScans().length }}</b></h3>
+        <p>Latest saved barcodes on this device</p>
+      </div>
+      <a class="all-records-link" routerLink="/barcode-records">All records <svg lucideArrowRight size="14"></svg></a>
+    </div>
+    <div class="recent-list" tabindex="0" aria-label="Recent barcode scans">
       @for (scan of recentScans(); track scan.id) {
         <article>
           <div class="recent-icon" [class.pending]="scan.syncStatus === 'Pending'"><svg lucidePackageCheck size="18"></svg></div>
-          <div class="recent-copy"><strong>{{ scan.articleName }}</strong><span>{{ scan.barcode }}</span><small><svg lucideClock3 size="11"></svg>{{ time(scan.timestamp) }} · {{ scan.source }}</small></div>
-          <span class="sync-status" [class.pending]="scan.syncStatus === 'Pending'">{{ scan.syncStatus }}</span>
+          <div class="recent-copy">
+            <div><strong>{{ scan.articleName }}</strong><span class="sync-status" [class.pending]="scan.syncStatus === 'Pending'"><i></i>{{ scan.syncStatus }}</span></div>
+            <code>{{ scan.barcode }}</code>
+            <small><svg lucideClock3 size="11"></svg>{{ time(scan.timestamp) }}<i></i>{{ scan.source }}</small>
+          </div>
         </article>
       } @empty {
         <div class="empty-recent"><svg lucideScanBarcode size="28"></svg><span>No scans on this device yet.</span></div>
       }
     </div>
-    <div class="shift-summary"><span>Shift total</span><strong>{{ recentScans().length }} barcode scans</strong></div>
+    <div class="shift-summary"><div><span><i></i>Device activity</span><small>Newest scans appear first</small></div><strong><b>{{ recentScans().length }}</b><span>scans</span></strong></div>
   </aside>
 </div>

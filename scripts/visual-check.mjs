@@ -96,9 +96,18 @@ await inspect('plant-dashboard-tablet', '/plant/dashboard/1', { width: 768, heig
   await page.waitForTimeout(500);
 });
 
-await inspect('scan-desktop', '/scan', { width: 1280, height: 800 });
+await inspect('scan-desktop', '/scan', { width: 1280, height: 800 }, async (page) => {
+  const recentMetrics = await page.locator('.recent-panel').evaluate((panel) => {
+    const list = panel.querySelector('.recent-list');
+    return { height: panel.getBoundingClientRect().height, clientHeight: list?.clientHeight ?? 0, scrollHeight: list?.scrollHeight ?? 0 };
+  });
+  check('Recent scans has a fixed desktop height', Math.round(recentMetrics.height) === 445, JSON.stringify(recentMetrics));
+  check('Recent scans uses a contained scroller', recentMetrics.scrollHeight > recentMetrics.clientHeight, JSON.stringify(recentMetrics));
+});
 
 await inspect('scan-mobile', '/scan', { width: 390, height: 844 }, async (page) => {
+  const mobileRecent = await page.locator('.recent-panel').evaluate((panel) => ({ height: panel.getBoundingClientRect().height, listOverflow: (panel.querySelector('.recent-list')?.scrollHeight ?? 0) > (panel.querySelector('.recent-list')?.clientHeight ?? 0) }));
+  check('Recent scans remains fixed and scrollable on mobile', Math.round(mobileRecent.height) === 420 && mobileRecent.listOverflow, JSON.stringify(mobileRecent));
   const firstAction = page.getByRole('button', { name: /Continue to scan/i });
   await firstAction.scrollIntoViewIfNeeded();
   const tapDebug = await firstAction.evaluate((target) => { const box = target.getBoundingClientRect(); const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2); return { box: { top: box.top, bottom: box.bottom }, hit: hit?.tagName, hitClass: hit?.getAttribute('class'), unobstructed: !!hit && target.contains(hit) }; });
